@@ -14,11 +14,14 @@ import {
 import ModernDashboardLayout from "@/layouts/DashboardLayout";
 
 export default function Show() {
-    const { invoice: invoiceFromProps } = usePage().props;
+    const { invoice: invoiceFromProps, auth } = usePage().props;
     // company & customer disimpan di dalam invoice oleh controller
     const invoice = invoiceFromProps ?? {};
     const company = invoice.company ?? null;
     const customer = invoice.customer ?? null;
+
+    // ambil role user (pastikan backend share auth via Inertia)
+    const role = auth?.user?.role ?? null;
 
     // === Actions (sama logika dgn Index) ===
     const handleDelete = () => {
@@ -55,16 +58,16 @@ export default function Show() {
         });
     };
 
-    // === Format helpers ===
     const formatRupiah = (number) => {
-        if (number == null) return "Rp 0";
+        const n = Number(number) || 0;
         return new Intl.NumberFormat("id-ID", {
             style: "currency",
             currency: "IDR",
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
-        }).format(number);
+        }).format(n);
     };
+
 
     const formatInteger = (number) => {
         if (number == null) return 0;
@@ -120,8 +123,8 @@ export default function Show() {
                             {/* Desktop: teks tombol */}
                             <div className="items-center hidden gap-2 sm:flex">
 
-                                {/* Edit only when draft */}
-                                {isDraft && (
+                                {/* Edit only when draft AND role finance */}
+                                {isDraft && role === "finance" && (
                                     <Link
                                         href={route("invoices.edit", invoice.id)}
                                         className="flex items-center gap-2 btn btn-xs btn-accent"
@@ -146,8 +149,8 @@ export default function Show() {
                                     <Send className="w-4 h-4" /> WA
                                 </button>
 
-                                {/* Delete only when draft */}
-                                {isDraft && (
+                                {/* Delete only when draft AND role finance */}
+                                {isDraft && role === "finance" && (
                                     <button
                                         onClick={handleDelete}
                                         className="flex items-center gap-2 btn btn-xs btn-error"
@@ -160,7 +163,7 @@ export default function Show() {
                             {/* Mobile: icon-only buttons */}
                             <div className="flex gap-1 sm:hidden">
 
-                                {isDraft && (
+                                {isDraft && role === "finance" && (
                                     <Link
                                         href={route("invoices.edit", invoice.id)}
                                         className="btn btn-xs btn-accent btn-circle"
@@ -190,7 +193,7 @@ export default function Show() {
                                     <Send className="w-4 h-4" />
                                 </button>
 
-                                {isDraft && (
+                                {isDraft && role === "finance" && (
                                     <button
                                         onClick={handleDelete}
                                         className="btn btn-xs btn-error btn-circle"
@@ -300,7 +303,7 @@ export default function Show() {
                                             <td>{i.product?.name ?? i.description ?? "-"}</td>
                                             <td>{i.unit ?? i.price?.label ?? "-"}</td>
                                             <td className="text-right">{formatInteger(i.quantity)}</td>
-                                            <td className="text-right">{formatRupiah(i.price ?? i.price?.price ?? 0)}</td>
+                                            <td className="text-right">{formatRupiah(i.price ?? 0)}</td>
                                             <td className="text-right">
                                                 {i.discount_type === "percent"
                                                     ? `${formatInteger(i.discount)}%`

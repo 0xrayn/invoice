@@ -78,7 +78,7 @@ export default function Navbar({
                         <Menu size={22} />
                     </button>
                     <span className="hidden text-sm font-medium text-base-content/70 md:inline">
-                        Welcome back 👋
+                        Welcome back <b>{user?.name ?? "User"}</b> 👋
                     </span>
                 </div>
 

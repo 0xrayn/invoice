@@ -33,9 +33,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('customers', CustomerController::class);
     });
 
-    // ===========================
-    // Invoices (Finance / Sales)
-    // ===========================
+    // Semua aksi lain → khusus finance
     Route::middleware(CheckRole::class . ':finance')->group(function () {
         Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])
             ->name('invoices.print');
@@ -45,9 +43,15 @@ Route::middleware(['auth'])->group(function () {
 
         Route::patch('invoices/{invoice}/printed', [InvoiceController::class, 'markPrinted'])
             ->name('invoices.markPrinted');
+
         Route::patch('invoices/{invoice}/sent', [InvoiceController::class, 'markSent'])
             ->name('invoices.markSent');
 
-        Route::resource('invoices', InvoiceController::class);
+        Route::resource('invoices', InvoiceController::class)->except(['index', 'show']);
+    });
+
+    Route::middleware(CheckRole::class . ':admin,finance')->group(function () {
+        Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
     });
 });

@@ -25,11 +25,12 @@ class InvoiceController extends Controller
                 ->where('user_id', $user->id)
                 ->latest()
                 ->paginate(15);
-        } else {
-            $this->authorizeAdmin();
+        } elseif ($user->isAdmin()) {
             $invoices = Invoice::with('customer', 'user', 'company')
                 ->latest()
                 ->paginate(15);
+        } else {
+            abort(403, 'Anda tidak punya akses ke Invoice.');
         }
 
         return inertia('Invoices/Index', [
@@ -86,7 +87,7 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice)
     {
-        $invoice->load('items.product', 'customer', 'user', 'company', 'items.price',);
+        $invoice->load('items.product', 'customer', 'user', 'company',);
 
         return inertia('Invoices/Show', [
             'invoice' => $invoice,

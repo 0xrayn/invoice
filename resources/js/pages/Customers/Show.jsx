@@ -8,8 +8,8 @@ export default function Show({ customer }) {
     return (
         <ModernDashboardLayout>
             <Head title="Detail Perusahaan" />
-            <div className="max-w-6xl mx-auto p-3">
-                <div className="card bg-base-100/50 backdrop-blur-lg shadow-xl border border-base-300 p-6 space-y-6">
+            <div className="max-w-6xl p-3 mx-auto">
+                <div className="p-6 space-y-6 border shadow-xl card bg-base-100/50 backdrop-blur-lg border-base-300">
 
                     {/* Header */}
                     <motion.div
@@ -19,15 +19,15 @@ export default function Show({ customer }) {
                         className="flex items-center justify-between mb-8"
                     >
                         <h1 className="flex items-center gap-2 text-3xl font-bold">
-                            <Building2 className="w-7 h-7 text-purple-500" />
-                            <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 bg-clip-text text-transparent">
+                            <Building2 className="text-purple-500 w-7 h-7" />
+                            <span className="text-transparent bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 bg-clip-text">
                                 Detail Perusahaan
                             </span>
                         </h1>
 
                         <Link
                             href={route("customers.index")}
-                            className="btn btn-primary shadow-md flex items-center gap-2"
+                            className="flex items-center gap-2 shadow-md btn btn-primary"
                         >
                             <ArrowLeft className="w-4 h-4" /> Kembali
                         </Link>
@@ -37,24 +37,13 @@ export default function Show({ customer }) {
                     <motion.div
                         whileHover={{ scale: 1.02 }}
                         transition={{ type: "spring", stiffness: 200 }}
-                        className="card bg-base-200/50 backdrop-blur-lg shadow-xl border border-base-300 hover:border-purple-400 hover:shadow-purple-400/40 transition-all p-6 space-y-4"
+                        className="p-6 space-y-4 transition-all border shadow-xl card bg-base-200/50 backdrop-blur-lg border-base-300 hover:border-purple-400 hover:shadow-purple-400/40"
                     >
                         <div className="flex items-center gap-4">
-                            {customer.logo_path ? (
-                                <img
-                                    src={`/storage/${customer.logo_path}`}
-                                    alt="logo"
-                                    className="w-24 h-24 rounded-lg border border-base-300"
-                                />
-                            ) : (
-                                <div className="w-24 h-24 bg-gray-200 flex items-center justify-center rounded-lg border border-base-300">
-                                    <span className="text-gray-500 text-sm">No Logo</span>
-                                </div>
-                            )}
                             <h2 className="text-2xl font-semibold">{customer.name}</h2>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                        <div className="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-2">
                             <div className="sm:col-span-2">
                                 <p className="text-sm opacity-70">Alamat</p>
                                 <p className="font-medium">{customer.address}</p>
@@ -109,7 +98,7 @@ export default function Show({ customer }) {
                         </Link>
                         <Link
                             href={route("customers.edit", customer.id)}
-                            className="btn btn-primary flex items-center gap-2 shadow-lg shadow-primary/40"
+                            className="flex items-center gap-2 shadow-lg btn btn-primary shadow-primary/40"
                         >
                             <Pencil className="w-4 h-4" /> Edit Perusahaan
                         </Link>

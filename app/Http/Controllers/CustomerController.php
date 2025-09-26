@@ -33,10 +33,6 @@ class CustomerController extends Controller
 
         $validated = $request->validate($this->validationRules());
 
-        if ($request->hasFile('logo_path')) {
-            $validated['logo_path'] = $request->file('logo_path')->store('logos', 'public');
-        }
-
         Customer::create($validated);
 
         return redirect()->route('customers.index')
@@ -67,15 +63,6 @@ class CustomerController extends Controller
 
         $validated = $request->validate($this->validationRules(true));
 
-        if ($request->hasFile('logo_path')) {
-            if ($customer->logo_path && Storage::disk('public')->exists($customer->logo_path)) {
-                Storage::disk('public')->delete($customer->logo_path);
-            }
-            $validated['logo_path'] = $request->file('logo_path')->store('logos', 'public');
-        } else {
-            unset($validated['logo_path']);
-        }
-
         $customer->update($validated);
 
         return redirect()->route('customers.index')
@@ -85,10 +72,6 @@ class CustomerController extends Controller
     public function destroy(Customer $customer)
     {
         $this->authorizeFinance();
-
-        if ($customer->logo_path && Storage::disk('public')->exists($customer->logo_path)) {
-            Storage::disk('public')->delete($customer->logo_path);
-        }
 
         $customer->delete();
 
@@ -117,7 +100,6 @@ class CustomerController extends Controller
             'country'     => 'nullable|string|max:100',
             'phone'       => ['nullable', 'regex:/^(0|62)[0-9]{8,13}$/'],
             'email'       => 'nullable|email|max:255',
-            'logo_path'   => 'nullable|file|mimes:jpg,jpeg,png,gif|max:2048',
         ];
 
         if ($isUpdate) {

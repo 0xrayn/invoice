@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthDashboardController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -50,9 +51,8 @@ Route::get('/central', function () {
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [AuthDashboardController::class, 'index'])
+        ->name('dashboard');
     Route::get('help', function () {
         return Inertia::render('Help/Index');
     })->name('help');

@@ -1,40 +1,36 @@
 import React from "react";
 import { Link, Head } from "@inertiajs/react";
 import { motion } from "framer-motion";
-import {
-    Package,
-    FileText,
-    Tag,
-    ArrowLeft,
-    Pencil,
-} from "lucide-react";
+import { Package, FileText, Tag, ArrowLeft, Pencil } from "lucide-react";
 import ModernDashboardLayout from "@/layouts/DashboardLayout";
 
 export default function Show({ product }) {
     return (
         <ModernDashboardLayout>
             <Head title="Detail Produk" />
-            <div className="max-w-6xl mx-auto p-3">
-                <div className="card bg-base-100/50 backdrop-blur-lg shadow-xl border border-base-300 p-6 space-y-6">
+            <div className="max-w-6xl p-3 mx-auto">
+                <div className="p-4 space-y-6 border shadow-xl sm:p-6 card bg-base-100/50 backdrop-blur-lg border-base-300">
+
                     {/* Header */}
                     <motion.div
-                        initial={{ y: -30, opacity: 0 }}
+                        initial={{ y: -20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.5 }}
-                        className="flex items-center justify-between mb-8"
+                        transition={{ duration: 0.4 }}
+                        className="flex items-center justify-between mb-6"
                     >
-                        <h1 className="flex items-center gap-2 text-3xl font-bold">
-                            <Package className="w-7 h-7 text-purple-500" />
-                            <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 bg-clip-text text-transparent">
+                        <h1 className="flex items-center gap-2 text-2xl font-bold sm:text-3xl">
+                            <Package className="w-6 h-6 text-purple-500 sm:w-7 sm:h-7" />
+                            <span className="text-lg text-transparent bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 bg-clip-text sm:text-2xl">
                                 Detail Produk
                             </span>
                         </h1>
 
+                        {/* Tombol Kembali icon only */}
                         <Link
                             href={route("products.index")}
-                            className="btn btn-primary shadow-md flex items-center gap-2"
+                            className="p-2 btn btn-square btn-primary sm:p-3"
                         >
-                            <ArrowLeft className="w-4 h-4" /> Kembali
+                            <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
                         </Link>
                     </motion.div>
 
@@ -42,78 +38,75 @@ export default function Show({ product }) {
                     <motion.div
                         whileHover={{ scale: 1.02 }}
                         transition={{ type: "spring", stiffness: 200 }}
-                        className="card bg-base-200/50 backdrop-blur-lg shadow-xl border border-base-300 hover:border-purple-400 hover:shadow-purple-400/40 transition-all p-6 space-y-4"
+                        className="p-4 space-y-4 transition-all border shadow-xl sm:p-6 card bg-base-200/50 backdrop-blur-lg border-base-300 hover:border-purple-400 hover:shadow-purple-400/40"
                     >
-                        <h2 className="font-semibold text-lg flex items-center gap-2 text-emerald-400">
-                            <FileText className="w-5 h-5" /> Informasi Produk
+                        <h2 className="flex items-center gap-2 text-lg font-semibold sm:text-xl text-emerald-400">
+                            <FileText className="w-4 h-4 sm:w-5 sm:h-5" /> Informasi Produk
                         </h2>
 
-                        {/* Gabungan Stok + Rincian */}
-                        <div className="sm:col-span-2">
-                            {product.stock.quantity_pcs > 0 ? (
-                                <div className="flex flex-wrap items-center gap-2 mt-1 text-base">
-                                    {/* Label Stok */}
-                                    <span className="text-sm opacity-70">Stok</span>
+                        {/* Stok */}
+                        {product.stock.quantity_pcs > 0 ? (
+                            <div className="flex flex-wrap items-center gap-2 mt-1 text-sm sm:text-base">
+                                <span className="opacity-70">Stok</span>
 
-                                    {/* Total Stok */}
+                                {product.stock.quantity_pcs > 0 && (
                                     <span className="badge badge-primary">
                                         {product.stock.quantity_pcs} {product.unit ?? "pcs"}
                                     </span>
+                                )}
 
-                                    {/* Karton */}
+                                {Math.floor(product.stock.quantity_pcs / product.pieces_per_carton) > 0 && (
                                     <span className="badge badge-outline badge-info">
                                         {Math.floor(product.stock.quantity_pcs / product.pieces_per_carton)} karton
                                     </span>
+                                )}
 
-                                    {/* Sisa Pcs */}
+                                {product.stock.quantity_pcs % product.pieces_per_carton > 0 && (
                                     <span className="badge badge-outline badge-accent">
                                         {product.stock.quantity_pcs % product.pieces_per_carton} pcs
                                     </span>
+                                )}
 
-                                    {/* Info isi per karton */}
-                                    <span className="text-xs opacity-70">
-                                        (Isi per Karton: {product.pieces_per_carton} pcs)
-                                    </span>
-                                </div>
-                            ) : (
-                                <p className="italic opacity-70 mt-1">Stok kosong</p>
-                            )}
-                        </div>
+                                <span className="text-xs opacity-70">
+                                    (Isi per Karton: {product.pieces_per_carton} pcs)
+                                </span>
+                            </div>
+                        ) : (
+                            <p className="mt-1 italic opacity-70">Stok kosong</p>
+                        )}
 
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Info tambahan */}
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <div>
-                                <p className="text-sm opacity-70">SKU Produk</p>
+                                <p className="text-xs sm:text-sm opacity-70">SKU Produk</p>
                                 <p className="font-medium">{product.sku}</p>
                             </div>
                             <div>
-                                <p className="text-sm opacity-70">Nama Produk</p>
+                                <p className="text-xs sm:text-sm opacity-70">Nama Produk</p>
                                 <p className="font-medium">{product.name}</p>
                             </div>
                             <div className="sm:col-span-2">
-                                <p className="text-sm opacity-70">Deskripsi</p>
+                                <p className="text-xs sm:text-sm opacity-70">Deskripsi</p>
                                 <p>{product.description || "-"}</p>
                             </div>
-
                         </div>
                     </motion.div>
-
 
                     {/* Harga Produk */}
                     <motion.div
                         whileHover={{ scale: 1.02 }}
                         transition={{ type: "spring", stiffness: 200 }}
-                        className="card bg-base-200/50 backdrop-blur-lg shadow-xl border border-base-300 hover:border-primary hover:shadow-primary/50 transition-all p-6 space-y-4"
+                        className="p-4 space-y-4 transition-all border shadow-xl sm:p-6 card bg-base-200/50 backdrop-blur-lg border-base-300 hover:border-primary hover:shadow-primary/50"
                     >
-                        <h2 className="font-semibold text-lg flex items-center gap-2 text-primary">
-                            <Tag className="w-5 h-5" /> Harga Produk
+                        <h2 className="flex items-center gap-2 text-lg font-semibold sm:text-xl text-primary">
+                            <Tag className="w-4 h-4 sm:w-5 sm:h-5" /> Harga Produk
                         </h2>
 
                         {product.prices.length > 0 ? (
                             <div className="overflow-x-auto">
-                                <table className="table w-full">
+                                <table className="table w-full text-sm sm:text-base">
                                     <thead>
-                                        <tr className="bg-base-300 text-sm ">
+                                        <tr className="bg-base-300">
                                             <th>Label</th>
                                             <th>Unit</th>
                                             <th>Min Qty</th>
@@ -122,10 +115,7 @@ export default function Show({ product }) {
                                     </thead>
                                     <tbody>
                                         {product.prices.map((p, i) => (
-                                            <tr
-                                                key={i}
-                                                className="hover:bg-base-100/50 transition"
-                                            >
+                                            <tr key={i} className="transition hover:bg-base-100/50">
                                                 <td>{p.label}</td>
                                                 <td>
                                                     <span className="badge badge-outline badge-info">
@@ -134,8 +124,7 @@ export default function Show({ product }) {
                                                 </td>
                                                 <td>{p.min_qty}</td>
                                                 <td className="font-semibold text-primary">
-                                                    Rp{" "}
-                                                    {Number(p.price).toLocaleString("id-ID")}
+                                                    Rp {Number(p.price).toLocaleString("id-ID")}
                                                 </td>
                                             </tr>
                                         ))}
@@ -147,21 +136,16 @@ export default function Show({ product }) {
                         )}
                     </motion.div>
 
-                    {/* Tombol Aksi (konsisten dengan Create) */}
-                    <div className="flex justify-end gap-3">
-                        <Link
-                            href={route("products.index")}
-                            className="btn btn-ghost"
-                        >
-                            Batal
-                        </Link>
+                    {/* Tombol Edit */}
+                    <div className="flex justify-end">
                         <Link
                             href={route("products.edit", product.id)}
-                            className="btn btn-primary flex items-center gap-2 shadow-lg shadow-primary/40"
+                            className="flex items-center gap-2 shadow-lg btn btn-primary shadow-primary/40"
                         >
-                            <Pencil className="w-4 h-4" /> Edit Produk
+                            <Pencil className="w-4 h-4 sm:w-5 sm:h-5" /> Edit Produk
                         </Link>
                     </div>
+
                 </div>
             </div>
         </ModernDashboardLayout>

@@ -15,7 +15,6 @@ class Customer extends Model
         'country',
         'phone',
         'email',
-        'logo_path',
     ];
 
     public function invoices()

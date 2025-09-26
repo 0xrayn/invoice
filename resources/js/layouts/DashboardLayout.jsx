@@ -29,7 +29,7 @@ export default function ModernDashboardLayout({ children }) {
     // Menu definition
     const menuItems = [
         { icon: <Home size={22} />, label: "Dashboard", key: "dashboard", url: route("dashboard"), roles: ["admin", "finance"] },
-        { icon: <BookOpen size={22} />, label: "Invoices", key: "invoices", url: route("invoices.index"), roles: ["finance"] },
+        { icon: <BookOpen size={22} />, label: "Invoices", key: "invoices", url: route("invoices.index"), roles: ["finance","admin"] },
         { icon: <BookOpen size={22} />, label: "Client", key: "customers", url: route("customers.index"), roles: ["finance"] },
         { icon: <BarChart3 size={22} />, label: "Produk", key: "product", url: route("products.index"), roles: ["admin"] },
         { icon: <BarChart3 size={22} />, label: "Perusahaan", key: "company", url: route("companies.index"), roles: ["admin"] },

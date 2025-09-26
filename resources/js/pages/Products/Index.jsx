@@ -11,7 +11,6 @@ export default function Index({ products }) {
         }
     };
 
-    // Format angka ke Rupiah
     const formatRupiah = (value) =>
         new Intl.NumberFormat("id-ID", {
             style: "currency",
@@ -22,23 +21,27 @@ export default function Index({ products }) {
     return (
         <ModernDashboardLayout>
             <Head title="Dashboard" />
-            <div className="max-w-7xl mx-auto p-3">
-                <div className="card bg-base-100/50 backdrop-blur-lg shadow-xl border border-base-300 p-6 space-y-4">
+            <div className="p-3 mx-auto max-w-7xl">
+                <div className="p-6 space-y-4 border shadow-xl card bg-base-100/50 backdrop-blur-lg border-base-300">
                     {/* Header */}
                     <motion.div
                         initial={{ y: -30, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 0.5 }}
-                        className="flex items-center justify-between mb-8"
+                        className="flex flex-wrap items-center justify-between gap-4 mb-8"
                     >
-                        <h1 className="flex items-center gap-2 text-3xl font-bold bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 bg-clip-text text-transparent">
-                            ✨ Daftar Produk
+                        <h1 className="text-3xl font-bold text-transparent sm:text-3xl bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 bg-clip-text">
+                            <span className="text-2xl sm:hidden">✨ Daftar Produk</span>
+                            <span className="hidden sm:inline">✨ Daftar Produk</span>
                         </h1>
+
                         <Link
                             href={route("products.create")}
-                            className="btn btn-primary shadow-md flex items-center gap-2"
+                            className="flex items-center justify-center gap-2 p-2 shadow-md btn btn-primary sm:p-3"
                         >
-                            <Plus className="w-4 h-4" /> Tambah Produk
+                            {/* Icon lebih kecil di mobile */}
+                            <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">Tambah Produk</span>
                         </Link>
                     </motion.div>
 
@@ -47,10 +50,10 @@ export default function Index({ products }) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.3 }}
-                        className="card bg-base-200/50 backdrop-blur-lg shadow-xl border border-base-300 hover:border-primary hover:shadow-primary/50 transition-all p-2 space-y-4 "
+                        className="p-2 space-y-4 overflow-x-auto transition-all border shadow-xl card bg-base-200/50 backdrop-blur-lg border-base-300 hover:border-primary hover:shadow-primary/50"
                     >
-                        <div className="card-body overflow-x-auto">
-                            <table className="table w-full">
+                        <div className="p-0 card-body">
+                            <table className="table w-full min-w-[600px]">
                                 <thead>
                                     <tr>
                                         <th>Nama Produk</th>
@@ -72,15 +75,13 @@ export default function Index({ products }) {
                                             <td className="font-mono text-sm text-gray-500">
                                                 {product.sku}
                                             </td>
-                                            <td>
-                                                {product.stock?.quantity_pcs || 0} pcs
-                                            </td>
+                                            <td>{product.stock?.quantity_pcs || 0} pcs</td>
                                             <td>
                                                 <div className="flex flex-col gap-1">
                                                     {product.prices.map((p, idx) => (
                                                         <span
                                                             key={idx}
-                                                            className="text-xs bg-base-300/40 rounded-md px-2 py-1 inline-block"
+                                                            className="inline-block px-2 py-1 text-xs rounded-md bg-base-300/40"
                                                         >
                                                             {p.label} ({p.unit}, min {p.min_qty}):{" "}
                                                             <span className="font-bold text-emerald-500">
@@ -91,24 +92,33 @@ export default function Index({ products }) {
                                                 </div>
                                             </td>
                                             <td className="text-right">
-                                                <div className="flex justify-end gap-2">
+                                                {/* Tombol aksi */}
+                                                <div className="flex justify-end gap-1">
+                                                    {/* Show */}
                                                     <Link
                                                         href={route("products.show", product.id)}
-                                                        className="btn btn-xs btn-ghost flex items-center gap-1"
+                                                        className="flex items-center justify-center p-2 btn btn-xs btn-ghost"
                                                     >
-                                                        <Eye className="w-4 h-4" /> Show
+                                                        <Eye className="w-4 h-4 sm:w-4 sm:h-4" />
+                                                        <span className="hidden ml-1 sm:inline">Show</span>
                                                     </Link>
+
+                                                    {/* Edit */}
                                                     <Link
                                                         href={route("products.edit", product.id)}
-                                                        className="btn btn-xs btn-accent flex items-center gap-1"
+                                                        className="flex items-center justify-center p-2 btn btn-xs btn-accent"
                                                     >
-                                                        <Pencil className="w-4 h-4" /> Edit
+                                                        <Pencil className="w-4 h-4 sm:w-4 sm:h-4" />
+                                                        <span className="hidden ml-1 sm:inline">Edit</span>
                                                     </Link>
+
+                                                    {/* Delete */}
                                                     <button
                                                         onClick={() => handleDelete(product.id)}
-                                                        className="btn btn-xs btn-error flex items-center gap-1"
+                                                        className="flex items-center justify-center p-2 btn btn-xs btn-error"
                                                     >
-                                                        <Trash2 className="w-4 h-4" /> Delete
+                                                        <Trash2 className="w-4 h-4 sm:w-4 sm:h-4" />
+                                                        <span className="hidden ml-1 sm:inline">Delete</span>
                                                     </button>
                                                 </div>
                                             </td>
@@ -120,7 +130,7 @@ export default function Index({ products }) {
                     </motion.div>
 
                     {/* Pagination */}
-                    <div className="mt-10 flex justify-center gap-2">
+                    <div className="flex flex-wrap justify-center gap-2 mt-10">
                         {products.links &&
                             products.links.map((link, i) => (
                                 <button

@@ -31,12 +31,8 @@ export default function Edit({ customer }) {
     country: customer.country || "Indonesia",
     phone: customer.phone || "",
     email: customer.email || "",
-    logo_path: null,
   });
 
-  const [preview, setPreview] = useState(
-    customer.logo_path ? `/storage/${customer.logo_path}` : null
-  );
   const [message, setMessage] = useState(null);
   const [liveErrors, setLiveErrors] = useState({ phone: null, email: null });
 
@@ -240,26 +236,6 @@ export default function Edit({ customer }) {
               {(errors.email || liveErrors.email) && (
                 <span className="text-sm text-error">{errors.email || liveErrors.email}</span>
               )}
-            </div>
-
-            <div className="form-control">
-              <label className="gap-2 text-sm font-semibold label ">
-                <ImageIcon className="w-4 h-4 text-yellow-400" /> Logo Perusahaan
-              </label>
-              <input
-                type="file"
-                className="w-full file-input file-input-bordered"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    setData("logo_path", file);
-                    setPreview(URL.createObjectURL(file));
-                  }
-                }}
-              />
-              {preview && <img src={preview} alt="Preview" className="w-24 h-24 mt-2 rounded-lg" />}
-              {errors.logo_path && <span className="text-sm text-error">{errors.logo_path}</span>}
             </div>
 
             <div className="flex justify-end gap-3 mt-6">

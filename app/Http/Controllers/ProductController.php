@@ -14,7 +14,7 @@ class ProductController extends Controller
     {
         $this->authorizeAdmin();
 
-        $products = Product::with(['prices', 'stock'])->paginate(20);
+        $products = Product::with(['prices', 'stock'])->latest()->paginate(20);
 
         return inertia('Products/Index', [
             'products' => $products,

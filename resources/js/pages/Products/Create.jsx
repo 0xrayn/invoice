@@ -28,6 +28,13 @@ export default function Create() {
         stock_quantity: 0,
     });
 
+    const addStock = () => {
+        if (data.stocks.length < 2) {
+            setData("stocks", [...data.stocks, { unit: "pcs", quantity: 0 }]);
+        }
+    };
+
+
     const totalPcs = (data.stocks || []).reduce((sum, s) => {
         if (s.unit === "carton") {
             return sum + Number(s.quantity || 0) * Number(data.pieces_per_carton);
@@ -48,6 +55,13 @@ export default function Create() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        const emptyPrice = data.prices.some(price => !price.price || Number(price.price) <= 0);
+
+        if (emptyPrice) {
+            alert("Harga produk tidak boleh kosong atau 0!");
+            return;
+        }
         post(route("products.store"));
     };
 
@@ -55,45 +69,47 @@ export default function Create() {
         <ModernDashboardLayout>
             <Head title="Tambah Produk" />
 
-            <div className="max-w-6xl mx-auto p-3">
-                <div className="card bg-base-100/50 backdrop-blur-lg shadow-xl border border-base-300  p-6 space-y-4">
+            <div className="max-w-6xl p-3 mx-auto">
+                <div className="p-6 space-y-4 border shadow-xl card bg-base-100/50 backdrop-blur-lg border-base-300">
 
                     {/* Header */}
                     <motion.div
                         initial={{ y: -30, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 0.5 }}
-                        className="flex items-center justify-between mb-8"
+                        className="flex flex-wrap items-center justify-between gap-4 mb-8"
                     >
-                        <h1 className="flex items-center gap-2 text-3xl font-bold">
-                            <Package className="w-7 h-7 text-purple-500" />
-                            <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 bg-clip-text text-transparent">
-                                Tambah Produk
+                        <h1 className="flex items-center gap-2 font-bold">
+                            <Package className="w-5 h-5 text-purple-500 sm:w-7 sm:h-7" />
+                            <span className="text-2xl font-semibold text-transparent bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 bg-clip-text sm:text-3xl">
+                                <span className="sm:hidden">Produk</span>
+                                <span className="hidden sm:inline">Tambah Produk</span>
                             </span>
                         </h1>
 
                         <Link
                             href={route("products.index")}
-                            className="btn btn-primary shadow-md flex items-center gap-2"
+                            className="flex items-center justify-center gap-2 p-2 shadow-md btn btn-primary sm:p-3"
                         >
-                            <ArrowLeft className="w-4 h-4" /> Kembali
+                            <ArrowLeft className="w-4 h-4" />
+                            <span className="hidden sm:inline">Kembali</span>
                         </Link>
                     </motion.div>
 
                     <form onSubmit={handleSubmit} className="space-y-10">
+
                         {/* Informasi Produk */}
                         <motion.div
                             whileHover={{ scale: 1.02 }}
                             transition={{ type: "spring", stiffness: 200 }}
-                            className="card bg-base-200/50 backdrop-blur-lg shadow-xl border border-base-300 hover:border-primary hover:shadow-primary/50 transition-all p-6 space-y-4"
+                            className="p-4 space-y-4 transition-all border shadow-xl card bg-base-200/50 backdrop-blur-lg border-base-300 hover:border-primary hover:shadow-primary/50 sm:p-6"
                         >
-                            <h2 className="font-semibold text-lg flex items-center gap-2 text-emerald-400">
+                            <h2 className="flex items-center gap-2 text-lg font-semibold text-emerald-400">
                                 <FileText className="w-5 h-5" /> Informasi Produk
                             </h2>
 
-                            {/* SKU */}
                             <div className="form-control">
-                                <label className="label gap-2">
+                                <label className="gap-2 label">
                                     <Hash className="w-4 h-4" />
                                     <span className="label-text">SKU Produk</span>
                                 </label>
@@ -102,16 +118,15 @@ export default function Create() {
                                     placeholder="Contoh: PPK001"
                                     value={data.sku}
                                     onChange={(e) => setData("sku", e.target.value)}
-                                    className="input input-bordered w-full"
+                                    className="w-full input input-bordered"
                                 />
                                 {errors.sku && (
-                                    <span className="text-error text-sm">{errors.sku}</span>
+                                    <span className="text-sm text-error">{errors.sku}</span>
                                 )}
                             </div>
 
-                            {/* Nama */}
                             <div className="form-control">
-                                <label className="label gap-2">
+                                <label className="gap-2 label">
                                     <Tag className="w-4 h-4" />
                                     <span className="label-text">Nama Produk</span>
                                 </label>
@@ -120,16 +135,15 @@ export default function Create() {
                                     placeholder="Contoh: Pupuk Ambition"
                                     value={data.name}
                                     onChange={(e) => setData("name", e.target.value)}
-                                    className="input input-bordered w-full"
+                                    className="w-full input input-bordered"
                                 />
                                 {errors.name && (
-                                    <span className="text-error text-sm">{errors.name}</span>
+                                    <span className="text-sm text-error">{errors.name}</span>
                                 )}
                             </div>
 
-                            {/* Deskripsi */}
                             <div className="form-control">
-                                <label className="label gap-2">
+                                <label className="gap-2 label">
                                     <FileText className="w-4 h-4" />
                                     <span className="label-text">Deskripsi</span>
                                 </label>
@@ -137,7 +151,7 @@ export default function Create() {
                                     placeholder="Keterangan tambahan produk"
                                     value={data.description}
                                     onChange={(e) => setData("description", e.target.value)}
-                                    className="textarea textarea-bordered w-full"
+                                    className="w-full textarea textarea-bordered"
                                 />
                             </div>
                         </motion.div>
@@ -146,9 +160,9 @@ export default function Create() {
                         <motion.div
                             whileHover={{ scale: 1.02 }}
                             transition={{ type: "spring", stiffness: 200 }}
-                            className="card bg-base-200/50 backdrop-blur-lg shadow-xl border border-base-300 hover:border-primary hover:shadow-primary/50 transition-all p-6 space-y-4"
+                            className="p-6 space-y-4 transition-all border shadow-xl card bg-base-200/50 backdrop-blur-lg border-base-300 hover:border-primary hover:shadow-primary/50"
                         >
-                            <h2 className="font-semibold text-lg flex items-center gap-2 text-cyan-400">
+                            <h2 className="flex items-center gap-2 text-lg font-semibold text-cyan-400">
                                 <Layers className="w-5 h-5" /> Stok Awal
                             </h2>
 
@@ -160,7 +174,7 @@ export default function Create() {
                                     min="1"
                                     value={data.pieces_per_carton}
                                     onChange={(e) => setData("pieces_per_carton", e.target.value)}
-                                    className="input input-bordered w-full"
+                                    className="w-full input input-bordered"
                                 />
                             </div>
 
@@ -187,16 +201,25 @@ export default function Create() {
                                             newStocks[i].quantity = e.target.value;
                                             setData("stocks", newStocks);
                                         }}
-                                        className="input input-bordered flex-1"
+                                        className="flex-1 input input-bordered"
                                         placeholder={`Jumlah ${s.unit}`}
                                     />
+                                    {data.stocks.length < 2 && (
+                                        <button
+                                            type="button"
+                                            onClick={addStock}
+                                            className="mt-2 btn btn-outline btn-sm"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            Tambah Stok
+                                        </button>
+                                    )}
+
                                     {data.stocks.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                const newStocks = data.stocks.filter(
-                                                    (_, idx) => idx !== i
-                                                );
+                                                const newStocks = data.stocks.filter((_, idx) => idx !== i);
                                                 setData("stocks", newStocks);
                                             }}
                                             className="btn btn-error btn-sm"
@@ -204,6 +227,7 @@ export default function Create() {
                                             <X className="w-4 h-4" />
                                         </button>
                                     )}
+
                                 </div>
                             ))}
 
@@ -216,115 +240,120 @@ export default function Create() {
                             </p>
                         </motion.div>
 
+
                         {/* Harga */}
                         <motion.div
                             whileHover={{ scale: 1.02 }}
                             transition={{ type: "spring", stiffness: 200 }}
-                            className="card bg-base-200/50 backdrop-blur-lg shadow-xl border border-base-300 hover:border-primary hover:shadow-primary/50 transition-all p-6 space-y-4"
+                            className="p-4 space-y-4 transition-all border shadow-xl card bg-base-200/50 backdrop-blur-lg border-base-300 hover:border-primary hover:shadow-primary/50 sm:p-6"
                         >
-                            <h2 className="font-semibold text-lg flex items-center gap-2 text-pink-400">
+                            <h2 className="flex items-center gap-2 text-lg font-semibold text-pink-400">
                                 <Tag className="w-5 h-5" /> Harga Produk
                             </h2>
 
-                            <div className="grid grid-cols-4 gap-2 mb-2 text-sm font-semibold">
-                                <span>Label</span>
-                                <span>Unit</span>
-                                <span>Min Qty</span>
-                                <span>Harga</span>
-                            </div>
+                            {/* Wrapper scroll hanya di mobile */}
+                            <div className="overflow-x-auto sm:overflow-x-visible">
+                                <div className="grid grid-cols-4 gap-2 mb-2 text-sm font-semibold min-w-[500px] sm:min-w-0">
+                                    <span>Label</span>
+                                    <span>Unit</span>
+                                    <span>Min Qty</span>
+                                    <span>Harga</span>
+                                </div>
 
-                            {data.prices.map((price, i) => (
-                                <div key={i} className="grid items-center grid-cols-4 gap-2 mb-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Contoh: Grosir, Eceran"
-                                        value={price.label}
-                                        onChange={(e) => {
-                                            const newPrices = [...data.prices];
-                                            newPrices[i].label = e.target.value;
-                                            setData("prices", newPrices);
-                                        }}
-                                        className="input input-bordered"
-                                    />
-                                    <select
-                                        value={price.unit}
-                                        onChange={(e) => {
-                                            const newPrices = [...data.prices];
-                                            newPrices[i].unit = e.target.value;
-                                            setData("prices", newPrices);
-                                        }}
-                                        className="select select-bordered"
-                                    >
-                                        <option value="pcs">Per Pcs</option>
-                                        <option value="carton">Per Karton</option>
-                                    </select>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        placeholder="Min"
-                                        value={price.min_qty}
-                                        onChange={(e) => {
-                                            const newPrices = [...data.prices];
-                                            newPrices[i].min_qty = e.target.value;
-                                            setData("prices", newPrices);
-                                        }}
-                                        className="input input-bordered"
-                                    />
-                                    <div className="flex gap-2">
+                                {data.prices.map((price, i) => (
+                                    <div key={i} className="grid items-center grid-cols-4 gap-2 mb-2 min-w-[500px] sm:min-w-0">
                                         <input
-                                            type="number"
-                                            placeholder="Harga"
-                                            value={price.price}
+                                            type="text"
+                                            placeholder="Contoh: Grosir, Eceran"
+                                            value={price.label}
                                             onChange={(e) => {
                                                 const newPrices = [...data.prices];
-                                                newPrices[i].price = e.target.value;
+                                                newPrices[i].label = e.target.value;
                                                 setData("prices", newPrices);
                                             }}
-                                            className="flex-1 input input-bordered"
+                                            className="input input-bordered"
                                         />
-                                        {data.prices.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const newPrices = data.prices.filter(
-                                                        (_, idx) => idx !== i
-                                                    );
+                                        <select
+                                            value={price.unit}
+                                            onChange={(e) => {
+                                                const newPrices = [...data.prices];
+                                                newPrices[i].unit = e.target.value;
+                                                setData("prices", newPrices);
+                                            }}
+                                            className="select select-bordered"
+                                        >
+                                            <option value="pcs">Per Pcs</option>
+                                            <option value="carton">Per Karton</option>
+                                        </select>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            placeholder="Min"
+                                            value={price.min_qty}
+                                            onChange={(e) => {
+                                                const newPrices = [...data.prices];
+                                                newPrices[i].min_qty = e.target.value;
+                                                setData("prices", newPrices);
+                                            }}
+                                            className="input input-bordered"
+                                        />
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="number"
+                                                placeholder="Harga"
+                                                value={price.price}
+                                                onChange={(e) => {
+                                                    const newPrices = [...data.prices];
+                                                    newPrices[i].price = e.target.value;
                                                     setData("prices", newPrices);
                                                 }}
-                                                className="btn btn-error btn-sm"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        )}
+                                                className="flex-1 input input-bordered"
+                                            />
+                                            {data.prices.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newPrices = data.prices.filter((_, idx) => idx !== i);
+                                                        setData("prices", newPrices);
+                                                    }}
+                                                    className="btn btn-error btn-sm"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
 
                             <button
                                 type="button"
                                 onClick={addPrice}
-                                className="btn btn-outline btn-sm mt-2 flex items-center gap-1"
+                                className="flex items-center gap-1 mt-2 btn btn-outline btn-sm"
                             >
-                                <Plus className="w-4 h-4" /> Tambah Harga
+                                <Plus className="w-4 h-4 sm:w-4 sm:h-4" />
+                                <span className="hidden sm:inline">Tambah Harga</span>
                             </button>
                         </motion.div>
 
+
                         {/* Tombol Aksi */}
-                        <div className="flex justify-end gap-3 mt-6">
-                            <Link href={route("products.index")} className="btn btn-ghost">
-                                <ArrowLeft className="w-4 h-4" /> Batal
+                        <div className="flex flex-wrap justify-end gap-3 mt-6 sm:flex-nowrap">
+                            <Link href={route("products.index")} className="flex items-center gap-1 btn btn-ghost">
+                                <ArrowLeft className="w-4 h-4" />
+                                <span className="hidden sm:inline">Batal</span>
                             </Link>
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="btn btn-primary flex gap-1 shadow-lg shadow-primary/40"
+                                className="flex gap-1 shadow-lg btn btn-primary shadow-primary/40"
                             >
-                                <Save className="w-4 h-4" /> Simpan
+                                <Save className="w-4 h-4" />
+                                <span className="hidden sm:inline">Simpan</span>
                             </button>
                         </div>
                     </form>
                 </div>
-
             </div>
         </ModernDashboardLayout>
     );
