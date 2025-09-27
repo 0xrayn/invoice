@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     FileText,
     User,
+    Users,
     Plus,
     Trash2,
     Eye,
@@ -15,6 +16,7 @@ import {
     Percent,
 } from "lucide-react";
 import ModernDashboardLayout from "@/layouts/DashboardLayout";
+import InvoicePreviewModal from "../../components/landingpage/invoice/preview-invoice";
 
 export default function Edit() {
     const { company, customers, products, invoice } = usePage().props;
@@ -211,7 +213,6 @@ export default function Edit() {
             }))
         ));
 
-
         // perhitungan
         formData.append("subtotal", subtotal);
         formData.append("discount_total", totalDiscount);
@@ -229,13 +230,6 @@ export default function Edit() {
 
         // method override biar tetap PUT
         formData.append("_method", "put");
-
-        // debug sebelum kirim (tetap non-blocking)
-        // console.log("=== FORM DATA SEBELUM KIRIM ===");
-        // for (let pair of formData.entries()) {
-        //     console.log(pair[0], pair[1]);
-        // }
-
         // kirim pakai post (bukan put)
         router.post(route("invoices.update", invoice.id), formData, {
             preserveScroll: true,
@@ -647,131 +641,16 @@ export default function Edit() {
                     </form>
                 </motion.div>
 
-                {/* Preview Modal */}
                 {previewData && (
-                    <div className="modal modal-open">
-                        <div className="max-w-4xl modal-box">
-                            <h3 className="mb-4 text-lg font-bold">Preview Invoice</h3>
-                            <div className="p-4 border rounded bg-base-200">
-                                {/* Header */}
-                                <div className="flex justify-between">
-                                    <div>
-                                        <h2 className="text-xl font-bold">{company?.name}</h2>
-                                        <p>{company?.address}</p>
-                                        <p>{company?.phone}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p>No: {data.invoice_no}</p>
-                                        <p>Tanggal: {data.invoice_date}</p>
-                                        <p>Jatuh Tempo: {data.due_date}</p>
-                                    </div>
-                                </div>
-
-                                {/* Customer Info */}
-                                <div className="mt-4">
-                                    <h3 className="font-semibold">Kepada:</h3>
-                                    {(() => {
-                                        const cust = customers.find((c) => c.id == data.customer_id);
-                                        return cust ? (
-                                            <div className="p-2 mt-1 border rounded bg-base-100">
-                                                <p className="font-bold">{cust.name}</p>
-                                                <p>{cust.address}</p>
-                                                <p>{cust.phone}</p>
-                                                {cust.email && <p>{cust.email}</p>}
-                                                {cust.city && <p>{cust.city}</p>}
-                                            </div>
-                                        ) : (
-                                            <p>-</p>
-                                        );
-                                    })()}
-                                </div>
-
-                                {/* Items */}
-                                <table className="table w-full mt-4 border table-zebra">
-                                    <thead>
-                                        <tr>
-                                            <th>Produk</th>
-                                            <th>Unit</th>
-                                            <th>Qty</th>
-                                            <th>Harga</th>
-                                            <th>Diskon</th>
-                                            <th>Pajak</th>
-                                            <th>Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {data.items.map((i, idx) => {
-                                            const product = products.find((p) => p.id == i.product_id);
-                                            const price = product?.prices.find((pr) => pr.id == i.price_id);
-                                            return (
-                                                <tr key={idx}>
-                                                    <td>{product?.name || "-"}</td>
-                                                    <td>{price?.unit || i.unit || "-"}</td>
-                                                    <td>{i.quantity}</td>
-                                                    <td>{i.price ? i.price.toLocaleString() : 0}</td>
-                                                    <td>
-                                                        {i.discount}
-                                                        {i.discount_type === "percent" ? "%" : "Rp"}
-                                                    </td>
-                                                    <td>{i.tax ? i.tax + "%" : "-"}</td>
-                                                    <td>{i.total ? i.total.toLocaleString() : 0}</td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                                {/* Summary */}
-                                <div className="p-4 mt-4 space-y-1 text-right border rounded shadow bg-base-100">
-                                    <div>Subtotal: {subtotal.toLocaleString()}</div>
-                                    <div>Total Diskon: -{totalDiscount.toLocaleString()}</div>
-                                    <div>Total Pajak: {totalTax.toLocaleString()}</div>
-                                    <div>Ongkir: {data.shipping_cost}</div>
-                                    <div>Diskon Tambahan: {data.extra_discount}</div>
-                                    <div className="text-lg font-bold">
-                                        Grand Total: {grandTotal.toLocaleString()}
-                                    </div>
-                                </div>
-
-                                {/* Notes */}
-                                <div className="mt-6">
-                                    <h3 className="font-semibold">Keterangan</h3>
-                                    <p>{data.keterangan || "-"}</p>
-                                </div>
-                                <div className="mt-6">
-                                    <h3 className="font-semibold">Syarat & Ketentuan</h3>
-                                    <p>{data.terms || "-"}</p>
-                                </div>
-
-                                {/* Signature */}
-                                {data.signature_path && (
-                                    <div className="mt-6">
-                                        <h3 className="font-semibold">Tanda Tangan</h3>
-                                        {data.signature_path instanceof File ? (
-                                            <img
-                                                src={URL.createObjectURL(data.signature_path)}
-                                                alt="Signature"
-                                                className="h-16 mt-2"
-                                            />
-                                        ) : (
-                                            <img
-                                                src={`/storage/${data.signature_path}`}
-                                                alt="Existing Signature"
-                                                className="h-16 mt-2"
-                                            />
-                                        )}
-                                    </div>
-                                )}
-
-                            </div>
-
-                            <div className="modal-action">
-                                <button onClick={() => setPreviewData(null)} className="btn">
-                                    Tutup
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <InvoicePreviewModal
+                        data={previewData}
+                        company={company}
+                        customers={customers}
+                        products={products}
+                        onClose={() => setPreviewData(null)}
+                    />
                 )}
+
             </div>
         </ModernDashboardLayout>
     );

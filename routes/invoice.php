@@ -17,41 +17,46 @@ Route::middleware(['auth'])->group(function () {
     // ===========================
     Route::middleware(CheckRole::class . ':admin')->group(function () {
         Route::resource('companies', CompanyController::class);
-    });
-
-    // ===========================
-    // Products (Admin Only)
-    // ===========================
-    Route::middleware(CheckRole::class . ':admin')->group(function () {
         Route::resource('products', ProductController::class);
     });
 
     // ===========================
-    // Customers (Finance / Sales)
+    // Customers (Finance Only)
     // ===========================
     Route::middleware(CheckRole::class . ':finance')->group(function () {
         Route::resource('customers', CustomerController::class);
     });
 
-    // Semua aksi lain → khusus finance
+    // ===========================
+    // Admin & Finance: lihat daftar & detail, cetak/kirim
+    // ===========================
+
+     // ===========================
+    // Finance Only: create, edit, delete, preview
+    // ===========================
     Route::middleware(CheckRole::class . ':finance')->group(function () {
-        Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])
-            ->name('invoices.print');
+        Route::post('invoices/preview', [InvoiceController::class, 'preview'])->name('invoices.preview');
 
-        Route::post('invoices/preview', [InvoiceController::class, 'preview'])
-            ->name('invoices.preview');
+        // finance routes
+        Route::get('invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
+        Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
 
-        Route::patch('invoices/{invoice}/printed', [InvoiceController::class, 'markPrinted'])
-            ->name('invoices.markPrinted');
-
-        Route::patch('invoices/{invoice}/sent', [InvoiceController::class, 'markSent'])
-            ->name('invoices.markSent');
-
-        Route::resource('invoices', InvoiceController::class)->except(['index', 'show']);
+        Route::get('invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
+        Route::patch('invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
+        Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
     });
 
-    Route::middleware(CheckRole::class . ':admin,finance')->group(function () {
-        Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
-        Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::prefix('invoices')->name('invoices.')->middleware(CheckRole::class . ':admin,finance')->group(function () {
+        Route::get('/', [InvoiceController::class, 'index'])->name('index');
+
+        // static routes BEFORE {invoice}
+        Route::get('{invoice}/print', [InvoiceController::class, 'print'])->name('print');
+        Route::patch('{invoice}/printed', [InvoiceController::class, 'markPrinted'])->name('markPrinted');
+        Route::patch('{invoice}/sent', [InvoiceController::class, 'markSent'])->name('markSent');
+
+        // route show (parameter) di akhir
+        Route::get('{invoice}', [InvoiceController::class, 'show'])->name('show');
     });
+
+
 });

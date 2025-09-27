@@ -441,31 +441,64 @@ class InvoiceController extends Controller
 
     public function markPrinted(Invoice $invoice)
     {
-        $this->authorizeFinance();
+        /** @var \App\Models\User $user */
 
-        return DB::transaction(function () use ($invoice) {
-            if ($invoice->status === 'draft') {
-                $this->adjustStockOnStatus($invoice);
+        $user = Auth::user();
+
+        return DB::transaction(function () use ($invoice, $user) {
+            // Finance bisa cetak kalau masih draft
+            if ($user->isFinance()) {
+                if ($invoice->status === 'draft') {
+                    $this->adjustStockOnStatus($invoice);
+                }
+                $invoice->update(['status' => 'printed']);
+
+                return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Printed!");
             }
 
-            $invoice->update(['status' => 'printed']);
+            // Admin hanya bisa cetak kalau finance sudah cetak dulu
+            if ($user->isAdmin()) {
+                if ($invoice->status !== 'draft') {
+                    $invoice->update(['status' => 'printed']);
+                    return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Printed oleh Admin!");
+                }
 
-            return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Printed!");
+                return back()->with('error', "Admin tidak bisa mencetak sebelum Finance melakukan cetak!");
+            }
+
+            abort(403, 'Anda tidak punya akses untuk aksi ini.');
         });
     }
 
+
     public function markSent(Invoice $invoice)
     {
-        $this->authorizeFinance();
+        /** @var \App\Models\User $user */
 
-        return DB::transaction(function () use ($invoice) {
-            if ($invoice->status === 'draft') {
-                $this->adjustStockOnStatus($invoice);
+        $user = Auth::user();
+
+        return DB::transaction(function () use ($invoice, $user) {
+            // Finance bisa kirim kalau masih draft/printed
+            if ($user->isFinance()) {
+                if ($invoice->status === 'draft') {
+                    $this->adjustStockOnStatus($invoice);
+                }
+                $invoice->update(['status' => 'sent']);
+
+                return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Sent!");
             }
 
-            $invoice->update(['status' => 'sent']);
+            // Admin hanya bisa kirim kalau finance sudah kirim dulu
+            if ($user->isAdmin()) {
+                if (in_array($invoice->status, ['printed', 'sent'])) {
+                    $invoice->update(['status' => 'sent']);
+                    return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Sent oleh Admin!");
+                }
 
-            return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Sent!");
+                return back()->with('error', "Admin tidak bisa mengirim sebelum Finance melakukan kirim/cetak!");
+            }
+
+            abort(403, 'Anda tidak punya akses untuk aksi ini.');
         });
     }
 }

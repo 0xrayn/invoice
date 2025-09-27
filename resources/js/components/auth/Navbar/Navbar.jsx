@@ -7,7 +7,7 @@ import {
     Sun,
     Moon,
     Home,
-    Users,
+    Info,
     BarChart3,
     Settings,
     LogOut,
@@ -151,8 +151,8 @@ export default function Navbar({
                             </div>
                             <div className="grid grid-cols-2 gap-4 p-4">
                                 <QuickAction icon={<Home size={24} />} label="Dashboard" href={route('dashboard')} />
-                                <QuickAction icon={<Users size={24} />} label="Users" href={route('dashboard')} />
-                                <QuickAction icon={<BarChart3 size={24} />} label="Reports" href={route('dashboard')} />
+                                <QuickAction icon={<BarChart3 size={24} />} label="Invoices" href={route('invoices.index')} />
+                                <QuickAction icon={<Info size={24} />} label="Help" href={route('help')} />
                                 <button
                                     className="flex flex-col items-center gap-1 p-3 rounded-lg cursor-pointer hover:bg-base-200"
                                     onClick={() =>
