@@ -75,7 +75,7 @@ export default function Index() {
 
                     {role === "finance" && (
                         <Link href={route("invoices.create")} className="flex items-center gap-2 shadow-md btn btn-primary">
-                            <Plus className="w-4 h-4" /> Buat Invoice
+                            <Plus className="w-4 h-4" />
                         </Link>
                     )}
                 </AnimatedCard>

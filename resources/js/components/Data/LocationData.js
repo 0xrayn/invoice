@@ -19,7 +19,7 @@ export const locations = {
   ],
   "Jawa Tengah": [
     { city: "Semarang", postal: "50135" },
-    { city: "Surakarta (Solo)", postal: "57111" },
+    { city: "Surakarta", postal: "57111" },
     { city: "Magelang", postal: "56117" },
     { city: "Tegal", postal: "52114" },
     { city: "Pekalongan", postal: "51122" },

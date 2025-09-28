@@ -92,23 +92,22 @@ export default function Navbar2({ darkMode, setDarkMode }) {
         scale: isExpanded ? 1 : 0.98,
       }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
-      className="fixed left-1/2 -translate-x-1/2 top-0 z-50
-        flex flex-col bg-white dark:bg-gray-900 backdrop-blur-lg shadow-lg"
+      className="fixed top-0 z-50 flex flex-col -translate-x-1/2 bg-white shadow-lg left-1/2 dark:bg-gray-900 backdrop-blur-lg"
     >
       {/* Bar atas */}
       <div className="flex items-center justify-between px-6 py-3">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold">
-            IP
+          <span className="flex items-center justify-center w-8 h-8 font-bold text-white bg-blue-600 rounded-full">
+            CV
           </span>
           <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">
-            InvoicePro
+            Mata Timur Nusantara
           </h1>
         </div>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex gap-6 items-center">
+        <div className="items-center hidden gap-6 md:flex">
           {/* Produk dropdown */}
           <div className="relative">
             <button
@@ -127,11 +126,11 @@ export default function Navbar2({ darkMode, setDarkMode }) {
                 >
                   {produkItems.map((item, idx) =>
                     item.divider ? (
-                      <div key={idx} className="text-sm text-gray-500 dark:text-gray-400 border-t pt-2">
+                      <div key={idx} className="pt-2 text-sm text-gray-500 border-t dark:text-gray-400">
                         {item.label}
                       </div>
                     ) : (
-                      <div key={idx} className="flex gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+                      <div key={idx} className="flex gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
                         <span className="text-xl">{item.icon}</span>
                         <div>
                           <p className="font-medium">{item.title}</p>
@@ -159,7 +158,7 @@ export default function Navbar2({ darkMode, setDarkMode }) {
           <select
             value={lang}
             onChange={(e) => setLang(e.target.value)}
-            className="bg-gray-200 dark:bg-gray-700 rounded-lg px-2 py-1 text-sm"
+            className="px-2 py-1 text-sm bg-gray-200 rounded-lg dark:bg-gray-700"
           >
             {Object.entries(langs).map(([key, val]) => (
               <option key={key} value={key}>{val}</option>
@@ -169,12 +168,12 @@ export default function Navbar2({ darkMode, setDarkMode }) {
           {/* Dark mode */}
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+            className="p-2 text-gray-700 bg-gray-200 rounded-full dark:bg-gray-700 dark:text-gray-200"
           >
             {darkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">
             Login
           </button>
         </div>
@@ -182,7 +181,7 @@ export default function Navbar2({ darkMode, setDarkMode }) {
         {/* Mobile Button */}
         <button
           onClick={() => setMobileMenu(!mobileMenu)}
-          className="md:hidden p-2 rounded-lg bg-gray-200 dark:bg-gray-700"
+          className="p-2 bg-gray-200 rounded-lg md:hidden dark:bg-gray-700"
         >
           {mobileMenu ? <X size={20} /> : <Menu size={20} />}
         </button>
@@ -196,13 +195,13 @@ export default function Navbar2({ darkMode, setDarkMode }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-col md:hidden px-6 pb-6 space-y-4 border-t border-gray-300 dark:border-gray-700"
+            className="flex flex-col px-6 pb-6 space-y-4 border-t border-gray-300 md:hidden dark:border-gray-700"
           >
             {/* Produk (mobile collapsible) */}
             <div>
               <button
                 onClick={() => setOpenDropdown(!openDropdown)}
-                className="flex items-center gap-1 w-full text-left text-gray-700 dark:text-gray-200 hover:text-blue-500"
+                className="flex items-center w-full gap-1 text-left text-gray-700 dark:text-gray-200 hover:text-blue-500"
               >
                 Produk <ChevronDown size={16} />
               </button>
@@ -212,15 +211,15 @@ export default function Navbar2({ darkMode, setDarkMode }) {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="mt-2 grid gap-3"
+                    className="grid gap-3 mt-2"
                   >
                     {produkItems.map((item, idx) =>
                       item.divider ? (
-                        <div key={idx} className="text-sm text-gray-500 dark:text-gray-400 border-t pt-2">
+                        <div key={idx} className="pt-2 text-sm text-gray-500 border-t dark:text-gray-400">
                           {item.label}
                         </div>
                       ) : (
-                        <div key={idx} className="flex gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+                        <div key={idx} className="flex gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
                           <span className="text-xl">{item.icon}</span>
                           <div>
                             <p className="font-medium">{item.title}</p>
@@ -247,7 +246,7 @@ export default function Navbar2({ darkMode, setDarkMode }) {
             <select
               value={lang}
               onChange={(e) => setLang(e.target.value)}
-              className="bg-gray-200 dark:bg-gray-700 rounded-lg px-2 py-1 text-sm"
+              className="px-2 py-1 text-sm bg-gray-200 rounded-lg dark:bg-gray-700"
             >
               {Object.entries(langs).map(([key, val]) => (
                 <option key={key} value={key}>{val}</option>
@@ -259,11 +258,11 @@ export default function Navbar2({ darkMode, setDarkMode }) {
                 setDarkMode(!darkMode);
                 setMobileMenu(false);
               }}
-              className="w-full p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+              className="w-full p-2 text-gray-700 bg-gray-200 rounded-lg dark:bg-gray-700 dark:text-gray-200"
             >
               {darkMode ? "Light Mode" : "Dark Mode"}
             </button>
-            <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <button className="w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">
               Login
             </button>
           </motion.div>

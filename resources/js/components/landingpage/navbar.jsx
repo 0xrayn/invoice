@@ -60,9 +60,9 @@ export default function Navbar() {
                     {/* Logo */}
                     <div className="flex items-center gap-2">
                         <span className="flex items-center justify-center w-8 h-8 font-bold rounded-full bg-primary text-primary-content">
-                            IP
+                            CV
                         </span>
-                        <h1 className="text-xl font-bold text-primary">InvoicePro</h1>
+                        <h1 className="text-xl font-bold text-primary">Mata Timur Nusantara</h1>
                     </div>
 
                     {/* Desktop Menu */}

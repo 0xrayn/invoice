@@ -25,7 +25,7 @@ export default defineConfig({
         strictPort: true,
         cors: true,
         hmr: {
-            host: '192.168.1.10',
+            host: '192.168.104.8',
         },
     },
     esbuild: {
