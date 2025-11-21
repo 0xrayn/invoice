@@ -17,7 +17,7 @@ import InvoicePreviewModal from "../../components/landingpage/invoice/preview-in
 
 export default function Create() {
     const { company, customers, products } = usePage().props;
-
+    const [qtyAlertTimeout, setQtyAlertTimeout] = useState(null);
     const { data, setData, post, processing, errors } = useForm({
         company_id: company?.id || null,
         customer_id: "",
@@ -75,15 +75,29 @@ export default function Create() {
         const items = [...data.items];
         const item = { ...items[index] };
 
-        if (["quantity", "price", "discount", "tax"].includes(field)) {
-            value = Number(value) || 0;
-        }
+        if (["quantity", "discount", "tax"].includes(field)) value = Number(value) || 0;
 
-        // find product if needed
-        const product = products?.find((p) => p.id == item.product_id);
+        const product = products?.find(p => p.id == item.product_id);
         const availableStock = product?.stock?.quantity_pcs ?? 0;
 
         if (field === "quantity") {
+            const priceObj = product?.prices?.find(pr => pr.id == item.price_id);
+            const minQty = priceObj?.min_qty ?? 1;
+
+            // Jika user isi qty < minQty, otomatis set ke minQty
+            if (value < minQty) {
+                value = minQty;
+            }
+
+            // Validasi kelipatan
+            if (qtyAlertTimeout) clearTimeout(qtyAlertTimeout);
+            setQtyAlertTimeout(setTimeout(() => {
+                if (minQty > 1 && value % minQty !== 0) {
+                    alert(`Qty harus kelipatan ${minQty}`);
+                }
+            }, 800));
+
+            // Cek stok
             const totalQtyForProduct =
                 data.items
                     .filter((i, iIdx) => i.product_id === item.product_id && iIdx !== index)
@@ -91,10 +105,14 @@ export default function Create() {
 
             if (totalQtyForProduct > availableStock) {
                 alert(`Qty total untuk produk ini tidak boleh lebih dari stok: ${availableStock}`);
-                value = Math.max(0, availableStock - (totalQtyForProduct - value));
+                value = Math.max(minQty, availableStock - (totalQtyForProduct - value));
             }
 
-            if (value < 0) value = 0;
+            if (value <= 0) {
+                items.splice(index, 1);
+                setData("items", items);
+                return;
+            }
         }
 
         item[field] = value;
@@ -107,21 +125,26 @@ export default function Create() {
         }
 
         if (field === "price_id") {
-            const priceObj = product?.prices?.find((pr) => pr.id == value);
+            const priceObj = product?.prices?.find(pr => pr.id == value);
             if (priceObj) {
                 item.price = Number(priceObj.price) || 0;
                 item.unit = priceObj.unit || "";
+                if (item.quantity < priceObj.min_qty) item.quantity = priceObj.min_qty;
             }
         }
 
-        // hitung total sementara
+        // --- hitung total per item (harga per pcs) ---
+        const priceObj = product?.prices?.find(pr => pr.id == item.price_id);
+        const minQty = priceObj?.min_qty ?? 1;
+        const unitPrice = priceObj ? priceObj.price / minQty : 0;
+
         const qty = Number(item.quantity) || 0;
-        const price = Number(item.price) || 0;
         const discount =
             item.discount_type === "percent"
-                ? (qty * price * (Number(item.discount) || 0)) / 100
+                ? (qty * unitPrice * (Number(item.discount) || 0)) / 100
                 : Number(item.discount) || 0;
-        const subtotal = qty * price - discount;
+
+        const subtotal = qty * unitPrice - discount;
         const taxValue = (subtotal * (Number(item.tax) || 0)) / 100;
 
         if (subtotal + taxValue < 0) {
@@ -130,40 +153,45 @@ export default function Create() {
         }
 
         item.total = subtotal + taxValue;
+
         items[index] = item;
         setData("items", items);
     };
-
-    // totals
-    const subtotal = data.items.reduce(
-        (s, i) => s + (Number(i.quantity) || 0) * (Number(i.price) || 0),
-        0
-    );
-    const totalDiscount = data.items.reduce((s, i) => {
-        const qty = Number(i.quantity) || 0;
-        const price = Number(i.price) || 0;
-        return (
-            s +
-            (i.discount_type === "percent"
-                ? (qty * price * (Number(i.discount) || 0)) / 100
-                : Number(i.discount) || 0)
-        );
+    const subtotal = data.items.reduce((s, i) => {
+        const product = products.find(p => p.id == i.product_id);
+        const priceObj = product?.prices?.find(pr => pr.id == i.price_id);
+        const unitPrice = priceObj ? priceObj.price / (priceObj.min_qty || 1) : 0;
+        return s + (Number(i.quantity) || 0) * unitPrice;
     }, 0);
-    const totalTax = data.items.reduce((s, i) => {
+
+    const totalDiscount = data.items.reduce((s, i) => {
+        const product = products.find(p => p.id == i.product_id);
+        const priceObj = product?.prices?.find(pr => pr.id == i.price_id);
+        const unitPrice = priceObj ? priceObj.price / (priceObj.min_qty || 1) : 0;
         const qty = Number(i.quantity) || 0;
-        const price = Number(i.price) || 0;
-        const discount =
-            i.discount_type === "percent"
-                ? (qty * price * (Number(i.discount) || 0)) / 100
-                : Number(i.discount) || 0;
-        const sub = qty * price - discount;
-        return s + (sub * (Number(i.tax) || 0)) / 100;
+        const discount = i.discount_type === "percent"
+            ? (qty * unitPrice * (Number(i.discount) || 0)) / 100
+            : Number(i.discount) || 0;
+        return s + discount;
+    }, 0);
+
+    const totalTax = data.items.reduce((s, i) => {
+        const product = products.find(p => p.id == i.product_id);
+        const priceObj = product?.prices?.find(pr => pr.id == i.price_id);
+        const unitPrice = priceObj ? priceObj.price / (priceObj.min_qty || 1) : 0;
+        const qty = Number(i.quantity) || 0;
+        const discount = i.discount_type === "percent"
+            ? (qty * unitPrice * (Number(i.discount) || 0)) / 100
+            : Number(i.discount) || 0;
+        const subtotal = qty * unitPrice - discount;
+        return s + (subtotal * (Number(i.tax) || 0)) / 100;
     }, 0);
 
     const grandTotal = Math.max(
         0,
         subtotal - totalDiscount + totalTax + Number(data.shipping_cost || 0) - Number(data.extra_discount || 0)
     );
+
 
     const submit = (e) => {
         e.preventDefault();
@@ -267,13 +295,28 @@ export default function Create() {
                             </td>
 
                             <td>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    value={item.quantity}
-                                    onChange={(e) => updateItem(idx, "quantity", e.target.value)}
-                                    className="w-20 input input-bordered input-sm"
-                                />
+                                <div className="flex flex-col">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={item.quantity}
+                                        onChange={(e) => updateItem(idx, "quantity", e.target.value)}
+                                        className="w-20 input input-bordered input-sm"
+                                    />
+                                    {(() => {
+                                        const product = products.find((p) => p.id == item.product_id);
+                                        const priceRow = product?.prices?.find((pr) => pr.id == item.price_id);
+
+                                        if (priceRow) {
+                                            return (
+                                                <span className="mt-1 text-[11px]  opacity-60">
+                                                    Minimal beli : {priceRow.min_qty}
+                                                </span>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+                                </div>
                             </td>
 
                             <td className="hidden sm:table-cell">

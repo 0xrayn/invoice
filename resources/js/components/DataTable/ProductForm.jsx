@@ -17,6 +17,18 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
         setData("stock_quantity", totalPcs);
     }, [data.stocks, data.pieces_per_carton]);
 
+    // ✅ cek otomatis sekali aja waktu awal render
+    useEffect(() => {
+        const hasEceran = data.prices.some(
+            (p) => p.unit === "pcs" && Number(p.min_qty) === 1
+        );
+
+        if (!hasEceran) {
+            alert("Produk wajib punya harga eceran (pcs, min_qty = 1).");
+        }
+    }, []); // 👈 kosong = cuma sekali di awal
+
+
     const addStock = () => {
         if (data.stocks.length < 2) {
             setData("stocks", [...data.stocks, { unit: "pcs", quantity: 0 }]);
@@ -208,7 +220,10 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                             </div>
 
                             {data.prices.map((price, i) => (
-                                <div key={i} className="grid items-center grid-cols-4 gap-2 mb-2 min-w-[500px] sm:min-w-0">
+                                <div
+                                    key={i}
+                                    className="grid items-center grid-cols-4 gap-2 mb-2 min-w-[500px] sm:min-w-0"
+                                >
                                     <input
                                         type="text"
                                         placeholder="Contoh: Grosir, Eceran"
@@ -260,6 +275,18 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                                             <button
                                                 type="button"
                                                 onClick={() => {
+                                                    const target = data.prices[i];
+                                                    const isEceran = target.unit === "pcs" && Number(target.min_qty) === 1;
+
+                                                    const eceranCount = data.prices.filter(
+                                                        (p) => p.unit === "pcs" && Number(p.min_qty) === 1
+                                                    ).length;
+
+                                                    if (isEceran && eceranCount === 1) {
+                                                        alert("Produk harus punya minimal 1 harga eceran (pcs, min_qty = 1).");
+                                                        return;
+                                                    }
+
                                                     const newPrices = data.prices.filter((_, idx) => idx !== i);
                                                     setData("prices", newPrices);
                                                 }}
@@ -271,6 +298,12 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                                     </div>
                                 </div>
                             ))}
+
+                            {!data.prices.some((p) => p.unit === "pcs" && Number(p.min_qty) === 1) && (
+                                <div className="p-2 mt-2 text-sm text-red-600 bg-red-100 border border-red-300 rounded">
+                                    ⚠️ Harus ada minimal <b>1 harga eceran</b> (unit = pcs dan Min Qty = 1).
+                                </div>
+                            )}
                         </div>
 
                         <button

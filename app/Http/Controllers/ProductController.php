@@ -41,8 +41,20 @@ class ProductController extends Controller
             'prices.*.label'   => 'required|string',
             'prices.*.unit'    => 'required|string|in:pcs,carton',
             'prices.*.price'   => 'required|numeric|min:0',
+            'prices.*.min_qty' => 'nullable|integer|min:1',
             'stock_quantity'   => 'required|integer|min:0',
         ]);
+
+        $hasEceran = collect($validated['prices'])->contains(function ($price) {
+            return $price['unit'] === 'pcs' && intval($price['min_qty']) === 1;
+        });
+
+        if (!$hasEceran) {
+            return back()->withErrors([
+                'prices' => 'Produk wajib punya minimal 1 harga eceran (pcs, min qty = 1).'
+            ])->withInput();
+        }
+
 
         $product = Product::create([
             'sku'              => $validated['sku'],
@@ -96,6 +108,17 @@ class ProductController extends Controller
             'prices.*.min_qty'  => 'nullable|integer|min:1',
             'stock_quantity'    => 'nullable|integer|min:0',
         ]);
+
+        $hasEceran = collect($validated['prices'])->contains(function ($price) {
+            return $price['unit'] === 'pcs' && intval($price['min_qty']) === 1;
+        });
+
+        if (!$hasEceran) {
+            return back()->withErrors([
+                'prices' => 'Produk wajib punya minimal 1 harga eceran (pcs, min qty = 1).'
+            ])->withInput();
+        }
+
 
         $product->update([
             'name'              => $validated['name'],

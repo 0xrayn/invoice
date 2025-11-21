@@ -16,8 +16,19 @@ export default function Create() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        const hasEceran = data.prices.some(
+            (p) => p.unit === "pcs" && Number(p.min_qty) === 1
+        );
+
+        if (!hasEceran) {
+            alert("Produk wajib punya harga eceran (pcs, min_qty = 1).");
+            return;
+        }
+
         post(route("products.store"));
     };
+
 
     return (
         <ModernDashboardLayout>
