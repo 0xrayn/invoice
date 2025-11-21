@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import ModernDashboardLayout from "@/layouts/DashboardLayout";
 import InvoicePreviewModal from "../../components/landingpage/invoice/preview-invoice";
+import { formatRupiah } from "@/lib/formatters";
 
 export default function Create() {
     const { company, customers, products } = usePage().props;
@@ -45,10 +46,11 @@ export default function Create() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const currencyFormat = (v) => {
-        const n = Number(v) || 0;
-        return n.toLocaleString("id-ID");
-    };
+    // const currencyFormat = (v) => {
+    //     const n = Number(v) || 0;
+    //     return n.toLocaleString("id-ID");
+    // };
+    const currencyFormat = (v) => formatRupiah(v);
 
     const addItem = () => {
         setData("items", [

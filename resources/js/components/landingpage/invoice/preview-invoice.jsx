@@ -4,16 +4,36 @@ import { Users } from "lucide-react";
 import { formatDate, formatRupiah, formatInteger } from "@/lib/formatters";
 
 export default function InvoicePreviewModal({ data, company, customers, products, onClose }) {
-    const subtotal = data.items.reduce((sum, i) => (sum + (i.quantity * i.price)), 0);
-    const totalDiscount = data.items.reduce(
-        (sum, i) =>
-            sum + (i.discount_type === "percent" ? (i.quantity * i.price * i.discount) / 100 : i.discount),
-        0
-    );
-    const totalTax = data.items.reduce((sum, i) => {
-        const disc = i.discount_type === "percent" ? (i.quantity * i.price * i.discount) / 100 : i.discount;
-        return sum + ((i.quantity * i.price - disc) * i.tax) / 100;
+    const subtotal = data.items.reduce((s, i) => {
+        const product = products.find(p => p.id == i.product_id);
+        const priceObj = product?.prices?.find(pr => pr.id == i.price_id);
+        const unitPrice = priceObj ? priceObj.price / (priceObj.min_qty || 1) : 0;
+        return s + (Number(i.quantity) || 0) * unitPrice;
     }, 0);
+
+    const totalDiscount = data.items.reduce((s, i) => {
+        const product = products.find(p => p.id == i.product_id);
+        const priceObj = product?.prices?.find(pr => pr.id == i.price_id);
+        const unitPrice = priceObj ? priceObj.price / (priceObj.min_qty || 1) : 0;
+        const qty = Number(i.quantity) || 0;
+        const discount = i.discount_type === "percent"
+            ? (qty * unitPrice * (Number(i.discount) || 0)) / 100
+            : Number(i.discount) || 0;
+        return s + discount;
+    }, 0);
+
+    const totalTax = data.items.reduce((s, i) => {
+        const product = products.find(p => p.id == i.product_id);
+        const priceObj = product?.prices?.find(pr => pr.id == i.price_id);
+        const unitPrice = priceObj ? priceObj.price / (priceObj.min_qty || 1) : 0;
+        const qty = Number(i.quantity) || 0;
+        const discount = i.discount_type === "percent"
+            ? (qty * unitPrice * (Number(i.discount) || 0)) / 100
+            : Number(i.discount) || 0;
+        const subtotal = qty * unitPrice - discount;
+        return s + (subtotal * (Number(i.tax) || 0)) / 100;
+    }, 0);
+
     const grandTotal = subtotal - totalDiscount + totalTax + Number(data.shipping_cost || 0) - Number(data.extra_discount || 0);
 
     const cust = customers.find((c) => c.id == data.customer_id);

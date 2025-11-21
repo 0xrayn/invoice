@@ -11,7 +11,7 @@ import {
     Trash2,
 } from "lucide-react";
 import ModernDashboardLayout from "@/layouts/DashboardLayout";
-import { formatDate, formatInteger, formatNumber,formatRupiah } from "@/lib/formatters";
+import { formatDate, formatInteger, formatRupiahNoPrefix, formatRupiah } from "@/lib/formatters";
 import { deleteInvoice, markInvoicePrinted, markInvoiceSent } from "@/lib/Action";
 
 export default function Show() {
@@ -222,43 +222,48 @@ export default function Show() {
                             </tbody>
                         </table>
                     </div>
-
                     <div className="max-w-md mt-4 ml-auto">
                         <table className="w-full text-sm">
                             <tbody>
                                 <tr>
-                                    <td className="w-40 text-gray-600">Subtotal</td>
-                                    <td className="pr-1 text-right whitespace-nowrap">Rp</td>
-                                    <td className="text-right">{formatNumber(invoice.subtotal ?? 0)}</td>
+                                    <td className="text-gray-600">Subtotal</td>
+                                    <td className="w-10 pr-1 text-right">Rp</td>
+                                    <td className="text-right tabular-nums">{formatRupiahNoPrefix(invoice.subtotal ?? 0)}</td>
                                 </tr>
+
                                 <tr>
                                     <td className="text-gray-600">Total Diskon</td>
-                                    <td className="pr-1 text-right whitespace-nowrap">Rp</td>
-                                    <td className="text-right">{formatNumber(invoice.discount_total ?? 0)}</td>
+                                    <td className="w-10 pr-1 text-right">Rp</td>
+                                    <td className="text-right tabular-nums">{formatRupiahNoPrefix(invoice.discount_total ?? 0)}</td>
                                 </tr>
+
                                 <tr>
                                     <td className="text-gray-600">Total Pajak</td>
-                                    <td className="pr-1 text-right whitespace-nowrap">Rp</td>
-                                    <td className="text-right">{formatNumber(invoice.tax_total ?? 0)}</td>
+                                    <td className="w-10 pr-1 text-right">Rp</td>
+                                    <td className="text-right tabular-nums">{formatRupiahNoPrefix(invoice.tax_total ?? 0)}</td>
                                 </tr>
+
                                 <tr>
                                     <td className="text-gray-600">Biaya Pengiriman</td>
-                                    <td className="pr-1 text-right whitespace-nowrap">Rp</td>
-                                    <td className="text-right">{formatNumber(invoice.shipping_cost ?? 0)}</td>
+                                    <td className="w-10 pr-1 text-right">Rp</td>
+                                    <td className="text-right tabular-nums">{formatRupiahNoPrefix(invoice.shipping_cost ?? 0)}</td>
                                 </tr>
+
                                 <tr>
                                     <td className="text-gray-600">Extra Diskon</td>
-                                    <td className="pr-1 text-right whitespace-nowrap">Rp</td>
-                                    <td className="text-right">{formatNumber(invoice.extra_discount ?? 0)}</td>
+                                    <td className="w-10 pr-1 text-right">Rp</td>
+                                    <td className="text-right tabular-nums">{formatRupiahNoPrefix(invoice.extra_discount ?? 0)}</td>
                                 </tr>
+
                                 <tr className="font-bold border-t">
                                     <td>Grand Total</td>
-                                    <td className="pr-1 text-right whitespace-nowrap">Rp</td>
-                                    <td className="text-right">{formatNumber(invoice.grand_total ?? 0)}</td>
+                                    <td className="w-10 pr-1 text-right">Rp</td>
+                                    <td className="text-right tabular-nums">{formatRupiahNoPrefix(invoice.grand_total ?? 0)}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+
 
                     <div className="mt-4">
                         <h3 className="mb-1 font-semibold">Keterangan</h3>

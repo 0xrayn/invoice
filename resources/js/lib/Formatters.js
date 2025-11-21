@@ -29,17 +29,59 @@ export const formatInteger = (number) => {
     return Math.round(number).toLocaleString("id-ID");
 };
 
+export function removeDecimal(value) {
+  if (value === null || value === undefined) return '';
+
+  // Jika tidak punya desimal, return integer tanpa .00
+  if (Number.isInteger(Number(value))) {
+    return Number(value).toLocaleString('id-ID');
+  }
+
+  // Jika punya desimal, bisa tetap ditampilkan atau dihilangkan
+  return Number(value).toLocaleString('id-ID', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+}
+
+
+// Format mata uang global (USD/EUR/SGD dll)
 export const formatCurrency = (value, currency = "IDR") => {
-    if (value == null) return "-";
-    const code = typeof currency === "string" ? currency : currency?.code || "IDR";
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: code }).format(value);
+    const num = Number(value) || 0;
+
+    // Untuk IDR tetap tanpa koma
+    if (currency === "IDR") {
+        return new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(num);
+    }
+
+    // Untuk mata uang asing → pakai 2 desimal
+    return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(num);
 };
 
-// create invoice
-export const currencyFormat = (v) => {
-    const n = Number(v) || 0;
-    return n.toLocaleString("id-ID");
+// Input parser
+export const parseRupiah = (value) => {
+    if (!value) return 0;
+    return Number(value.toString().replace(/\D/g, "")) || 0;
 };
+
+export const formatRupiahNoPrefix = (value) => {
+    const n = Math.round(Number(value) || 0);
+    return new Intl.NumberFormat("id-ID", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(n);
+}
+
 
 // export const formatRupiah = (value) => {
 //     if (value === null || value === undefined) return "";
@@ -51,7 +93,7 @@ export const currencyFormat = (v) => {
 //     }).format(number);
 // };
 
-export const parseRupiah = (value) => {
-    if (!value) return 0;
-    return parseInt(value.toString().replace(/\D/g, "")) || 0;
-};
+// export const parseRupiah = (value) => {
+//     if (!value) return 0;
+//     return parseInt(value.toString().replace(/\D/g, "")) || 0;
+// };

@@ -102,7 +102,7 @@ class InvoiceController extends Controller
             'invoice'   => $invoice->load('items.product'),
             'company'   => Company::first(),
             'customers' => Customer::all(),
-            'products'  => Product::with('prices')->get(),
+            'products' => Product::with('prices', 'stock')->get(),
         ]);
     }
 
