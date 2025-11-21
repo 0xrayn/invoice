@@ -42,7 +42,7 @@ export default function Dashboard() {
     const user = auth?.user || {};
 
     const currency = useMemo(
-        () => (v) => (typeof v === "number" ? `Rp ${v.toLocaleString()}` : v ?? "Rp 0"),
+        () => (v) => (typeof v === "number" ? `Rp ${v.toLocaleString("id-ID")}` : v ?? "Rp 0"),
         []
     );
 
@@ -76,14 +76,14 @@ export default function Dashboard() {
         yaxis: {
             labels: {
                 style: { colors: "currentColor", fontSize: "11px" },
-                formatter: (v) => `Rp ${v.toLocaleString()}`,
+                formatter: (v) => `Rp ${Math.round(v).toLocaleString("id-ID")}`
             },
         },
         colors: ["#6366F1"],
         tooltip: {
             theme: "light",
             y: {
-                formatter: (v) => `Rp ${v.toLocaleString()}`,
+                formatter: (v) => `Rp ${Math.round(v).toLocaleString("id-ID")}`
             },
             custom: function ({ series, seriesIndex, dataPointIndex, w }) {
                 const value = series[seriesIndex][dataPointIndex];
@@ -91,7 +91,7 @@ export default function Dashboard() {
                 return `
       <div class="rounded-lg shadow-md px-3 py-2 bg-base-100 text-base-content border border-base-200">
         <div class="text-xs font-medium">${label}</div>
-        <div class="text-sm font-bold">Rp ${value.toLocaleString()}</div>
+        <div class="text-sm font-bold">Rp ${Math.round(value).toLocaleString("id-ID")}</div>
       </div>
     `;
             },
