@@ -177,21 +177,32 @@ class InvoiceController extends Controller
                 ->with('error', 'Invoice dengan status Printed/Sent tidak bisa dihapus.');
         }
 
-        /** @var \App\Models\User $creator */
-        $creator  = Auth::user();
-        $admins = User::where('role', 'admin')->get();
+        $data = [
+            'id'       => $invoice->id,
+            'number'   => $invoice->invoice_no,    // FIX: pakai invoice_no yang benar
+            'customer' => $invoice->customer->name,
+            'amount'   => $invoice->grand_total,   // FIX: sesuai schema
+            'url'      => route('invoices.index'),
+        ];
 
-        $creator->notify(new InvoiceCancelled($invoice));
+        /** @var \App\Models\User $creator */
+        $creator = Auth::user();
+        $admins  = User::where('role', 'admin')->get();
+
+        $creator->notify(new InvoiceCancelled($data));
 
         foreach ($admins as $admin) {
-            $admin->notify(new InvoiceCancelled($invoice));
+            $admin->notify(new InvoiceCancelled($data));
         }
+
         $invoice->delete();
 
         return redirect()
             ->route('invoices.index')
             ->with('success', 'Invoice berhasil dihapus.');
     }
+
+
 
     public function print(Invoice $invoice)
     {
@@ -467,7 +478,6 @@ class InvoiceController extends Controller
                 }
 
                 $invoice->update(['status' => 'printed']);
-
             } elseif ($user->isAdmin()) {
 
                 if ($invoice->status === 'draft') {

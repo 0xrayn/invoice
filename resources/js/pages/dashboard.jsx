@@ -26,7 +26,7 @@ function StatCard({ icon, title, subtitle, value, accent = "bg-gradient-to-r fro
                     <div className="flex-1">
                         <h4 className="text-sm font-medium opacity-90">{title}</h4>
                         <p className="text-xs opacity-80">{subtitle}</p>
-                        <div className="mt-3 text-xl font-extrabold tracking-tight">{value}</div>
+                        <div className="mt-3 textarea-lg font-extrabold tracking-tight">{value}</div>
                     </div>
                     <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-white/12">
                         {icon}
@@ -42,9 +42,10 @@ export default function Dashboard() {
     const user = auth?.user || {};
 
     const currency = useMemo(
-        () => (v) => (typeof v === "number" ? `Rp ${v.toLocaleString("id-ID")}` : v ?? "Rp 0"),
+        () => (v) => (typeof v === "number" ? `Rp ${Math.floor(v).toLocaleString("id-ID")}` : v ?? "Rp 0"),
         []
     );
+
 
     const gradients = {
         indigo: "bg-gradient-to-r from-indigo-600 to-violet-600",

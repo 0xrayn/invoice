@@ -124,12 +124,12 @@ export default function Navbar({
                             onClose={() => setNotifOpen(false)}
                             width="w-80"
                         >
-                            <div className="flex justify-between p-3 md:bg-primary bg-info text-base-100">
-                                <span className="font-semibold">Notifications</span>
-
+                            {/* Header */}
+                            <div className="relative px-3 pt-3 pb-5 font-semibold text-base-100 text-center rounded-t-2xl bg-info border-b border-base-300">
+                                <span className="text-sm sm:text-base">Notifications</span>
                                 {unread > 0 && (
                                     <button
-                                        className="text-xs underline"
+                                        className="absolute bottom-2 right-3 text-[10px] sm:text-xs text-base-300 hover:text-base-100"
                                         onClick={() =>
                                             router.post(route("notifications.readAll"), {}, {
                                                 preserveScroll: true,
@@ -142,9 +142,12 @@ export default function Navbar({
                                         Mark all as read
                                     </button>
                                 )}
-
                             </div>
 
+
+
+
+                            {/* Notifications List */}
                             <ul className="divide-y divide-base-300">
                                 {notifications.length === 0 && (
                                     <li className="p-3 text-sm text-center text-base-content/60">
@@ -164,16 +167,17 @@ export default function Navbar({
                                         </div>
                                     </li>
                                 ))}
+
+                                {/* View All */}
                                 <li
                                     onClick={() => router.visit(route("notifications.index"))}
                                     className="flex items-center justify-center p-3 text-sm font-semibold cursor-pointer rounded-b-2xl hover:bg-info/80 hover:text-base-100"
                                 >
                                     View All
                                 </li>
-
                             </ul>
-
                         </AnimatedDropdown>
+
                     </div>
 
                     {/* Quick Menu */}

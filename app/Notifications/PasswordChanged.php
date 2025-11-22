@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notification;
 
 class PasswordChanged extends Notification
 {
+    use Queueable;
     public function via($notifiable)
     {
         return ['database'];
@@ -20,6 +21,7 @@ class PasswordChanged extends Notification
             'title' => 'Password Changed',
             'message' => 'Your account password has been updated.',
             'type' => 'password_changed',
+            'url' => route('profile.edit'),
         ];
     }
 }

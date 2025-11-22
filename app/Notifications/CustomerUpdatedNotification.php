@@ -6,17 +6,17 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use App\Models\Customer;
 
-class CustomerCreatedNotification extends Notification
+class CustomerUpdatedNotification extends Notification
 {
     use Queueable;
 
     protected $customer;
-    protected $createdBy;
+    protected $updatedBy;
 
-    public function __construct(Customer $customer, $createdBy)
+    public function __construct(Customer $customer, $updatedBy)
     {
         $this->customer = $customer;
-        $this->createdBy = $createdBy;
+        $this->updatedBy = $updatedBy;
     }
 
     public function via($notifiable)
@@ -27,11 +27,11 @@ class CustomerCreatedNotification extends Notification
     public function toDatabase($notifiable)
     {
         return [
-            'title' => 'Customer Created',
-            'message' => "Customer '{$this->customer->name}' telah dibuat.",
+            'title' => 'Customer Updated',
+            'message' => "Customer '{$this->customer->name}' telah diupdate.",
             'customer_id' => $this->customer->id,
-            'type' => 'customer_created',
-            'created_by' => $this->createdBy->name,
+            'type' => 'customer_updated',
+            'updated_by' => $this->updatedBy->name,
             'url' => route('customers.show', $this->customer->id),
         ];
     }

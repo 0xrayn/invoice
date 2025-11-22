@@ -4,16 +4,20 @@ namespace App\Notifications;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use App\Models\Invoice;
 
-class InvoiceCancelled extends Notification implements ShouldQueue
+class InvoiceCancelled extends Notification
 {
     use Queueable;
 
-    public function __construct(public $invoice, public $cancelledBy = null)
+    public $invoiceId;
+    public $cancelledBy;
+
+    public function __construct($invoice, $cancelledBy = null)
     {
-        $this->cancelledBy ??= Auth::id();
+        $this->invoiceId = is_array($invoice) ? $invoice['id'] : $invoice->id;
+        $this->cancelledBy = $cancelledBy ?? Auth::id();
     }
 
     public function via($notifiable)
@@ -23,10 +27,12 @@ class InvoiceCancelled extends Notification implements ShouldQueue
 
     public function toDatabase($notifiable)
     {
+        $invoice = Invoice::find($this->invoiceId);
+
         return [
             'title'       => 'Invoice Cancelled',
-            'message'     => 'Invoice #' . $this->invoice->invoice_no . ' telah dibatalkan.',
-            'invoice_id'  => $this->invoice->id,
+            'message'     => 'Invoice #' . ($invoice->invoice_no ?? '-') . ' telah dibatalkan.',
+            'invoice_id'  => $this->invoiceId,
             'type'        => 'invoice_cancelled',
             'created_by'  => $this->cancelledBy,
             'url'         => route('invoices.index'),

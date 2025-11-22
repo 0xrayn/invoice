@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Notifications\ProfileUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -31,22 +32,17 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-
         $user = $request->user();
         $data = $request->validated();
-        // dd($request->all(), $request->input('name'), $request->input('email'), $request->file('profile_photo'));
 
-        // upload foto
         if ($request->hasFile('profile_photo')) {
             $path = $request->file('profile_photo')->store('profile_photos', 'public');
             $data['profile_photo'] = $path;
 
-            // opsional: hapus foto lama jika ada
             if ($user->profile_photo) {
                 Storage::disk('public')->delete($user->profile_photo);
             }
         }
-
 
         $user->fill($data);
 
@@ -56,8 +52,11 @@ class ProfileController extends Controller
 
         $user->save();
 
+        $user->notify(new ProfileUpdated());
+
         return to_route('profile.edit');
     }
+
 
 
     /**

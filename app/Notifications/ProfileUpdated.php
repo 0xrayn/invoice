@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notification;
 
 class ProfileUpdated extends Notification
 {
+    use Queueable;
     public function via($notifiable)
     {
         return ['database'];
@@ -20,6 +21,7 @@ class ProfileUpdated extends Notification
             'title' => 'Profile Updated',
             'message' => 'Your profile information was updated.',
             'type' => 'profile_updated',
+            'url' => route('profile.edit'),
         ];
     }
 }

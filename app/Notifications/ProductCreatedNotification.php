@@ -6,15 +6,17 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use App\Models\Product;
 
-class ProductLowStockNotification extends Notification
+class ProductCreatedNotification extends Notification
 {
     use Queueable;
 
     protected $product;
+    protected $createdBy;
 
-    public function __construct(Product $product)
+    public function __construct(Product $product, $createdBy)
     {
         $this->product = $product;
+        $this->createdBy = $createdBy;
     }
 
     public function via($notifiable)
@@ -25,10 +27,11 @@ class ProductLowStockNotification extends Notification
     public function toDatabase($notifiable)
     {
         return [
-            'title' => 'Low Stock Alert',
-            'message' => "Stock Product '{$this->product->name}' tersisa {$this->product->stock->quantity_pcs} pcs.",
+            'title' => 'Product Created',
+            'message' => "Product '{$this->product->name}' telah dibuat.",
             'product_id' => $this->product->id,
-            'type' => 'product_low_stock',
+            'type' => 'product_created',
+            'created_by' => $this->createdBy->name,
             'url' => route('products.show', $this->product->id),
         ];
     }

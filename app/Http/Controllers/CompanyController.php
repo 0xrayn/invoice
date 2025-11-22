@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Notifications\CompanyUpdatedNotification;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -77,6 +78,10 @@ class CompanyController extends Controller
         }
 
         $company->update($validated);
+        /** @var \App\Models\User&\Illuminate\Notifications\Notifiable $actor */
+        $actor = Auth::user();
+        // Actor sendiri
+        $actor->notify(new CompanyUpdatedNotification($company, $actor));
 
         return redirect()->route('companies.index')
             ->with('success', 'Data perusahaan berhasil diperbarui');

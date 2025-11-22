@@ -3,52 +3,36 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use App\Models\Company;
 
 class CompanyUpdatedNotification extends Notification
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct()
+    protected $company;
+    protected $updatedBy;
+
+    public function __construct(Company $company, $updatedBy)
     {
-        //
+        $this->company = $company;
+        $this->updatedBy = $updatedBy;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    public function via($notifiable)
     {
-        return ['mail'];
+        return ['database'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
-    }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
+    public function toDatabase($notifiable)
     {
         return [
-            //
+            'title' => 'Company Updated',
+            'message' => "Company '{$this->company->name}' telah diupdate.",
+            'company_id' => $this->company->id,
+            'type' => 'company_updated',
+            'updated_by' => $this->updatedBy->name,
+            'url' => route('companies.show', $this->company->id),
         ];
     }
 }

@@ -12,42 +12,75 @@ use Illuminate\Http\Request;
 class NotificationController extends Controller
 {
 
+    // /**
+    //  * @param Request $request
+    //  * @param string $id
+    //  * @return \Illuminate\Http\RedirectResponse
+    //  */
+
     /**
-     * @param Request $request
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
+     * Display a listing of notifications.
+     *
+     * @return \Inertia\Response|\Inertia\ResponseFactory
      */
-    // public function read(Request $request, $id)
-    // {
-    //     /** @var User $user */
-    //     $user = $request->user();
 
-    //     $notification = $user->notifications()->where('id', $id)->first();
-    //     dd($notification->data);
+    public function index()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-    //     if ($notification) {
-    //         $notification->markAsRead();
+        $notifications = $user->notifications()->latest()->paginate(10);
 
-    //         // ambil URL dari notifikasi (sudah kita simpan di InvoiceCreated)
-    //         $url = $notification->data['url'] ?? route('dashboard');
-
-    //         return redirect($url);
-    //     }
-
-    //     return redirect()->route('dashboard');
-    // }
+        return inertia('Notifications/Index', [
+            'notifications' => $notifications,
+        ]);
+    }
 
     public function read(Request $request, $id)
     {
         $notification = $request->user()->notifications()->where('id', $id)->first();
 
-        if ($notification) {
-            $notification->markAsRead();
-            return redirect($notification->data['url'] ?? route('dashboard'));
+        if (! $notification) {
+            return redirect()->route('dashboard');
         }
 
-        return redirect()->route('dashboard');
+        $notification->markAsRead();
+
+        $data = $notification->data;
+
+        switch ($data['type'] ?? null) {
+            case 'invoice_created':
+                $invoiceExists = \App\Models\Invoice::find($data['invoice_id']);
+                if ($invoiceExists) {
+                    return redirect()->route('invoices.show', $data['invoice_id']);
+                } else {
+                    return redirect()->route('invoices.index')
+                        ->with('error', 'Invoice sudah dihapus.');
+                }
+
+            case 'product_created':
+                $productExists = \App\Models\Product::find($data['product_id']);
+                if ($productExists) {
+                    return redirect()->route('products.show', $data['product_id']);
+                } else {
+                    return redirect()->route('products.index')
+                        ->with('error', 'Produk sudah dihapus.');
+                }
+
+            case 'customer_created':
+                $customerExists = \App\Models\Customer::find($data['customer_id']);
+                if ($customerExists) {
+                    return redirect()->route('customers.show', $data['customer_id']);
+                } else {
+                    return redirect()->route('customers.index')
+                        ->with('error', 'Customer sudah dihapus.');
+                }
+
+            default:
+                return redirect()->route('dashboard');
+        }
     }
+
 
 
 

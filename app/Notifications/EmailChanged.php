@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notification;
 
 class EmailChanged extends Notification
 {
+    use Queueable;
     public function __construct(public $newEmail) {}
 
     public function via($notifiable)
@@ -22,6 +23,7 @@ class EmailChanged extends Notification
             'title' => 'Email Changed',
             'message' => 'Your email is now: ' . $this->newEmail,
             'type' => 'email_changed',
+            'url' => route('profile.edit'),
         ];
     }
 }

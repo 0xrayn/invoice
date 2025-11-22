@@ -140,7 +140,8 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                                 type="number"
                                 min="1"
                                 value={data.pieces_per_carton}
-                                onChange={(e) => setData("pieces_per_carton", e.target.value)}
+                                // onChange={(e) => setData("pieces_per_carton", e.target.value)}
+                                onChange={(e) => setData("pieces_per_carton", Number(e.target.value))}
                                 className="w-full input input-bordered"
                             />
                         </div>
@@ -151,7 +152,8 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                                     value={s.unit}
                                     onChange={(e) => {
                                         const newStocks = [...data.stocks];
-                                        newStocks[i].unit = e.target.value;
+                                        // newStocks[i].unit = e.target.value;
+                                        newStocks[i].quantity = Number(e.target.value)
                                         setData("stocks", newStocks);
                                     }}
                                     className="select select-bordered w-28"
@@ -254,7 +256,8 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                                         value={price.min_qty}
                                         onChange={(e) => {
                                             const newPrices = [...data.prices];
-                                            newPrices[i].min_qty = e.target.value;
+                                            // newPrices[i].min_qty = e.target.value;
+                                            newPrices[i].min_qty = Number(e.target.value)
                                             setData("prices", newPrices);
                                         }}
                                         className="input input-bordered"

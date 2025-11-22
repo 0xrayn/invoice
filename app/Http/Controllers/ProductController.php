@@ -7,6 +7,10 @@ use App\Models\ProductPrice;
 use App\Models\Stock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\ProductCreatedNotification;
+use App\Notifications\ProductLowStockNotification;
+use App\Notifications\ProductUpdatedNotification;
+use App\Notifications\ProductDeletedNotification;
 
 class ProductController extends Controller
 {
@@ -77,6 +81,12 @@ class ProductController extends Controller
             'product_id'   => $product->id,
             'quantity_pcs' => $validated['stock_quantity'],
         ]);
+
+        /** @var \App\Models\User $actor */
+        $actor = Auth::user();
+
+        // Actor sendiri
+        $actor->notify(new ProductCreatedNotification($product, $actor));
 
         return redirect()->route('products.index')
             ->with('success', 'Produk berhasil ditambahkan');
@@ -154,6 +164,16 @@ class ProductController extends Controller
                 ]);
             }
         }
+        /** @var \App\Models\User&\Illuminate\Notifications\Notifiable $actor */
+        $actor = Auth::user();
+
+        // Actor sendiri
+        $actor->notify(new ProductUpdatedNotification($product, $actor));
+
+        // Low stock
+        if (!empty($validated['stock_quantity']) && $validated['stock_quantity'] < 10) {
+            $actor->notify(new ProductLowStockNotification($product));
+        }
 
         return redirect()->route('products.index')
             ->with('success', 'Produk berhasil diperbarui');
@@ -175,7 +195,9 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $this->authorizeAdmin();
-
+        /** @var \App\Models\User&\Illuminate\Notifications\Notifiable $actor */
+        $actor = Auth::user();
+        $actor->notify(new ProductDeletedNotification($product, $actor));
         $product->delete();
 
         return redirect()->route('products.index')

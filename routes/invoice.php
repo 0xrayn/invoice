@@ -61,14 +61,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('{invoice}', [InvoiceController::class, 'show'])->name('show');
     });
 
-    Route::get('/notifications', function () {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
+    // Route::get('/notifications', function () {
+    //     /** @var \App\Models\User $user */
+    //     $user = Auth::user();
 
-        return Inertia::render('Notifications/Index', [
-            'notifications' => $user->notifications()->latest()->get(),
-        ]);
-    })->name('notifications.index');
+    //     return Inertia::render('Notifications/Index', [
+    //         'notifications' => $user->notifications()->latest()->get(),
+    //     ]);
+    // })->name('notifications.index');
+
+    Route::get('/notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+
 
     Route::get('/notifications/read/{id}', [NotificationController::class, 'read'])
         ->name('notifications.read');

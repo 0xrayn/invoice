@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Notifications\CustomerCreatedNotification;
+use App\Notifications\CustomerUpdatedNotification;
+use App\Notifications\CustomerDeletedNotification;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,6 +38,13 @@ class CustomerController extends Controller
 
         Customer::create($validated);
 
+        $customer = Customer::create($validated);
+
+        /** @var \App\Models\User $creator */
+        $creator = Auth::user();
+        $creator->notify(new CustomerCreatedNotification($customer, $creator));
+
+
         return redirect()->route('customers.index')
             ->with('success', 'Customer berhasil ditambahkan');
     }
@@ -65,6 +75,12 @@ class CustomerController extends Controller
 
         $customer->update($validated);
 
+        /** @var \App\Models\User&\Illuminate\Notifications\Notifiable $updatedBy */
+        $updatedBy = Auth::user();
+        // Actor sendiri
+        $updatedBy->notify(new CustomerUpdatedNotification($customer, $updatedBy));
+
+
         return redirect()->route('customers.index')
             ->with('success', 'Data customer berhasil diperbarui');
     }
@@ -74,6 +90,11 @@ class CustomerController extends Controller
         $this->authorizeFinance();
 
         $customer->delete();
+        $deletedBy = Auth::user();
+
+        /** @var \App\Models\User&\Illuminate\Notifications\Notifiable $deletedBy */
+        $deletedtedBy = Auth::user();
+        $deletedBy->notify(new CustomerDeletedNotification($customer, $deletedBy));
 
         return redirect()->route('customers.index')
             ->with('success', 'Customer berhasil dihapus');
