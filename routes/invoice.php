@@ -6,6 +6,9 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Middleware\CheckRole;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\NotificationController;
 
 // ===========================
 // Auth Middleware
@@ -31,7 +34,7 @@ Route::middleware(['auth'])->group(function () {
     // Admin & Finance: lihat daftar & detail, cetak/kirim
     // ===========================
 
-     // ===========================
+    // ===========================
     // Finance Only: create, edit, delete, preview
     // ===========================
     Route::middleware(CheckRole::class . ':finance')->group(function () {
@@ -58,5 +61,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('{invoice}', [InvoiceController::class, 'show'])->name('show');
     });
 
+    Route::get('/notifications', function () {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
+        return Inertia::render('Notifications/Index', [
+            'notifications' => $user->notifications()->latest()->get(),
+        ]);
+    })->name('notifications.index');
+
+    Route::get('/notifications/read/{id}', [NotificationController::class, 'read'])
+        ->name('notifications.read');
+
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])
+        ->name('notifications.readAll');
 });

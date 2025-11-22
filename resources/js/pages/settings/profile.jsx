@@ -199,79 +199,82 @@ export default function Profile({ mustVerifyEmail, status }) {
                     </div>
 
                     {/* Delete User */}
-                    <div className="p-4 space-y-4 border border-red-200 rounded-lg bg-red-50">
-                        <header>
-                            <h3 className="mb-0.5 text-base font-medium text-red-600">
-                                Delete Account
-                            </h3>
-                            <p className="text-sm text-gray-500">
-                                Delete your account and all of its resources
-                            </p>
-                        </header>
-
-                        <div className="text-red-600">
-                            <p className="font-medium">Warning</p>
-                            <p className="text-sm">
-                                Please proceed with caution, this cannot be undone.
-                            </p>
-                        </div>
-
-                        <button
-                            className="text-white btn btn-error"
-                            onClick={() => document.getElementById("delete_modal").showModal()}
-                        >
-                            Delete account
-                        </button>
-
-                        <dialog id="delete_modal" className="modal">
-                            <div className="modal-box">
-                                <h3 className="text-lg font-bold">
-                                    Are you sure you want to delete your account?
+                    {auth.user.role !== "admin" && (
+                        <div className="p-4 space-y-4 border border-red-200 rounded-lg bg-red-50">
+                            <header>
+                                <h3 className="mb-0.5 text-base font-medium text-red-600">
+                                    Delete Account
                                 </h3>
-                                <p className="py-2 text-sm">
-                                    Once your account is deleted, all of its resources and data
-                                    will also be permanently deleted. Please enter your password
-                                    to confirm you would like to permanently delete your account.
+                                <p className="text-sm text-gray-500">
+                                    Delete your account and all of its resources
                                 </p>
+                            </header>
 
-                                <form onSubmit={deleteUser} className="space-y-4">
-                                    <input
-                                        id="password"
-                                        type="password"
-                                        ref={passwordInput}
-                                        value={deleteData.password}
-                                        onChange={(e) => setDeleteData("password", e.target.value)}
-                                        placeholder="Password"
-                                        autoComplete="current-password"
-                                        className="w-full input input-bordered"
-                                    />
-                                    {deleteErrors.password && (
-                                        <p className="text-sm text-red-500">{deleteErrors.password}</p>
-                                    )}
-
-                                    <div className="modal-action">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                document.getElementById("delete_modal").close();
-                                                closeModal();
-                                            }}
-                                            className="btn"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            disabled={deleteProcessing}
-                                            className="text-white btn btn-error"
-                                        >
-                                            Delete account
-                                        </button>
-                                    </div>
-                                </form>
+                            <div className="text-red-600">
+                                <p className="font-medium">Warning</p>
+                                <p className="text-sm">
+                                    Please proceed with caution, this cannot be undone.
+                                </p>
                             </div>
-                        </dialog>
-                    </div>
+
+                            <button
+                                className="text-white btn btn-error"
+                                onClick={() => document.getElementById("delete_modal").showModal()}
+                            >
+                                Delete account
+                            </button>
+
+                            <dialog id="delete_modal" className="modal">
+                                <div className="modal-box">
+                                    <h3 className="text-lg font-bold">
+                                        Are you sure you want to delete your account?
+                                    </h3>
+                                    <p className="py-2 text-sm">
+                                        Once your account is deleted, all of its resources and data
+                                        will also be permanently deleted. Please enter your password
+                                        to confirm you would like to permanently delete your account.
+                                    </p>
+
+                                    <form onSubmit={deleteUser} className="space-y-4">
+                                        <input
+                                            id="password"
+                                            type="password"
+                                            ref={passwordInput}
+                                            value={deleteData.password}
+                                            onChange={(e) => setDeleteData("password", e.target.value)}
+                                            placeholder="Password"
+                                            autoComplete="current-password"
+                                            className="w-full input input-bordered"
+                                        />
+                                        {deleteErrors.password && (
+                                            <p className="text-sm text-red-500">{deleteErrors.password}</p>
+                                        )}
+
+                                        <div className="modal-action">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    document.getElementById("delete_modal").close();
+                                                    closeModal();
+                                                }}
+                                                className="btn"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={deleteProcessing}
+                                                className="text-white btn btn-error"
+                                            >
+                                                Delete account
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </dialog>
+                        </div>
+                    )}
+
                 </div>
             </SettingsLayout>
         </AppLayout>

@@ -24,6 +24,14 @@ use Illuminate\Notifications\Notifiable;
  * @method bool isAdmin()
  * @method bool isFinance()
  */
+/**
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection $notifications
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection $readNotifications
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection $unreadNotifications
+ */
+/**
+ * @mixin \Illuminate\Notifications\Notifiable
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */

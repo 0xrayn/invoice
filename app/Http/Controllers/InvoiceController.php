@@ -3,6 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
+use App\Models\User;
+use App\Notifications\InvoiceCreated;
+use App\Notifications\InvoiceUpdated;
+use App\Notifications\InvoicePrintedNotification;
+use App\Notifications\InvoiceSentNotification;
+use App\Notifications\InvoiceCancelled;
 use App\Models\InvoiceItem;
 use App\Models\Product;
 use App\Models\ProductPrice;
@@ -79,6 +85,17 @@ class InvoiceController extends Controller
                 $this->adjustStockOnStatus($invoice);
             }
 
+            /** @var \App\Models\User $creator */
+            $creator = Auth::user();
+
+            $admins = User::where('role', 'admin')->get();
+
+            $creator->notify(new InvoiceCreated($invoice));
+
+            foreach ($admins as $admin) {
+                $admin->notify(new InvoiceCreated($invoice));
+            }
+
             return redirect()->route('invoices.show', $invoice->id)
                 ->with('success', 'Invoice berhasil dibuat!');
         });
@@ -135,6 +152,16 @@ class InvoiceController extends Controller
         return DB::transaction(function () use ($validated, $invoice) {
             $this->updateInvoiceData($invoice, $validated);
 
+            /** @var \App\Models\User $creator */
+            $creator  = Auth::user();
+            $admins = User::where('role', 'admin')->get();
+
+            $creator->notify(new InvoiceUpdated($invoice));
+
+            foreach ($admins as $admin) {
+                $admin->notify(new InvoiceUpdated($invoice));
+            }
+
             return redirect()
                 ->route('invoices.show', $invoice->id)
                 ->with('success', 'Invoice berhasil diperbarui!');
@@ -150,6 +177,15 @@ class InvoiceController extends Controller
                 ->with('error', 'Invoice dengan status Printed/Sent tidak bisa dihapus.');
         }
 
+        /** @var \App\Models\User $creator */
+        $creator  = Auth::user();
+        $admins = User::where('role', 'admin')->get();
+
+        $creator->notify(new InvoiceCancelled($invoice));
+
+        foreach ($admins as $admin) {
+            $admin->notify(new InvoiceCancelled($invoice));
+        }
         $invoice->delete();
 
         return redirect()
@@ -421,63 +457,78 @@ class InvoiceController extends Controller
     public function markPrinted(Invoice $invoice)
     {
         /** @var \App\Models\User $user */
-
         $user = Auth::user();
 
         return DB::transaction(function () use ($invoice, $user) {
-            // Finance bisa cetak kalau masih draft
+
             if ($user->isFinance()) {
                 if ($invoice->status === 'draft') {
                     $this->adjustStockOnStatus($invoice);
                 }
+
                 $invoice->update(['status' => 'printed']);
 
-                return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Printed!");
-            }
+            } elseif ($user->isAdmin()) {
 
-            // Admin hanya bisa cetak kalau finance sudah cetak dulu
-            if ($user->isAdmin()) {
-                if ($invoice->status !== 'draft') {
-                    $invoice->update(['status' => 'printed']);
-                    return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Printed oleh Admin!");
+                if ($invoice->status === 'draft') {
+                    return back()->with('error', "Admin tidak bisa mencetak sebelum Finance melakukan cetak!");
                 }
 
-                return back()->with('error', "Admin tidak bisa mencetak sebelum Finance melakukan cetak!");
+                $invoice->update(['status' => 'printed']);
+            } else {
+                abort(403, 'Anda tidak punya akses untuk aksi ini.');
             }
 
-            abort(403, 'Anda tidak punya akses untuk aksi ini.');
+            // Notifikasi
+            $creator  = $user;
+            $admins = User::where('role', 'admin')->get();
+
+            $creator->notify(new InvoicePrintedNotification($invoice));
+
+            foreach ($admins as $admin) {
+                $admin->notify(new InvoicePrintedNotification($invoice));
+            }
+
+            return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Printed!");
         });
     }
+
 
 
     public function markSent(Invoice $invoice)
     {
         /** @var \App\Models\User $user */
-
         $user = Auth::user();
 
         return DB::transaction(function () use ($invoice, $user) {
-            // Finance bisa kirim kalau masih draft/printed
+
             if ($user->isFinance()) {
                 if ($invoice->status === 'draft') {
                     $this->adjustStockOnStatus($invoice);
                 }
                 $invoice->update(['status' => 'sent']);
+            } elseif ($user->isAdmin()) {
 
-                return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Sent!");
-            }
-
-            // Admin hanya bisa kirim kalau finance sudah kirim dulu
-            if ($user->isAdmin()) {
-                if (in_array($invoice->status, ['printed', 'sent'])) {
-                    $invoice->update(['status' => 'sent']);
-                    return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Sent oleh Admin!");
+                if (! in_array($invoice->status, ['printed', 'sent'])) {
+                    return back()->with('error', "Admin tidak bisa mengirim sebelum Finance melakukan kirim/cetak!");
                 }
 
-                return back()->with('error', "Admin tidak bisa mengirim sebelum Finance melakukan kirim/cetak!");
+                $invoice->update(['status' => 'sent']);
+            } else {
+                abort(403, 'Anda tidak punya akses untuk aksi ini.');
             }
 
-            abort(403, 'Anda tidak punya akses untuk aksi ini.');
+            // Notifikasi
+            $creator  = $user;
+            $admins = User::where('role', 'admin')->get();
+
+            $creator->notify(new InvoiceSentNotification($invoice));
+
+            foreach ($admins as $admin) {
+                $admin->notify(new InvoiceSentNotification($invoice));
+            }
+
+            return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Sent!");
         });
     }
 }

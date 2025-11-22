@@ -12,7 +12,7 @@ import {
     Settings,
     LogOut,
 } from "lucide-react";
-import { Link, usePage } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import AnimatedDropdown from "./AnimatedDropdown";
 import QuickAction from "./QuickAction";
 
@@ -32,9 +32,16 @@ export default function Navbar({
 }) {
     const { auth } = usePage().props;
     const user = auth?.user;
+    const notifications = auth.notifications ?? [];
+    const unread = auth.unread_count ?? 0;
     const notifRef = useRef(null);
     const menuRef = useRef(null);
     const profileRef = useRef(null);
+
+
+    const handleNotificationClick = (notif) => {
+        window.location.href = route("notifications.read", notif.id);
+    };
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -52,6 +59,13 @@ export default function Navbar({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [notifOpen, menuOpen, profileOpen, setNotifOpen, setMenuOpen, setProfileOpen]);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({ only: ["auth"] });
+        }, 3400);
+
+        return () => clearInterval(interval);
+    }, []);
     return (
         <div
             className={`
@@ -94,36 +108,71 @@ export default function Navbar({
                                 setMenuOpen(false);
                                 setProfileOpen(false);
                             }}
-                            className="btn btn-ghost btn-circle"
+                            className="relative btn btn-ghost btn-circle"
                         >
                             <Bell size={22} />
+
+                            {unread > 0 && (
+                                <span className="absolute badge badge-error badge-sm -top-1 -right-1">
+                                    {unread}
+                                </span>
+                            )}
                         </button>
+
                         <AnimatedDropdown
                             isOpen={notifOpen}
                             onClose={() => setNotifOpen(false)}
                             width="w-80"
                         >
-                            <div className="p-3 font-semibold text-center border-b text-base-100 rounded-t-2xl border-base-300 bg-info">
-                                Notifications
-                            </div>
-                            <ul className="divide-y divide-base-300">
-                                {[
-                                    { t: "New user registered", s: "2 min ago" },
-                                    { t: "Server restarted", s: "10 min ago" },
-                                    { t: "Update available", s: "1 hour ago" },
-                                ].map((n, i) => (
-                                    <li
-                                        key={i}
-                                        className="flex items-center justify-between p-3 text-sm hover:bg-base-300/60"
+                            <div className="flex justify-between p-3 md:bg-primary bg-info text-base-100">
+                                <span className="font-semibold">Notifications</span>
+
+                                {unread > 0 && (
+                                    <button
+                                        className="text-xs underline"
+                                        onClick={() =>
+                                            router.post(route("notifications.readAll"), {}, {
+                                                preserveScroll: true,
+                                                onSuccess: () => {
+                                                    router.reload({ only: ["auth"] });
+                                                },
+                                            })
+                                        }
                                     >
-                                        <span>{n.t}</span>
-                                        <span className="text-xs text-base-content/70">{n.s}</span>
+                                        Mark all as read
+                                    </button>
+                                )}
+
+                            </div>
+
+                            <ul className="divide-y divide-base-300">
+                                {notifications.length === 0 && (
+                                    <li className="p-3 text-sm text-center text-base-content/60">
+                                        Tidak ada notifikasi.
+                                    </li>
+                                )}
+                                {notifications.slice(0, 5).map((n) => (
+                                    <li
+                                        key={n.id}
+                                        onClick={() => handleNotificationClick(n)}
+                                        className="p-3 text-sm cursor-pointer hover:bg-base-300/60"
+                                    >
+                                        <div className="font-semibold">{n.data.title}</div>
+                                        <div className="text-xs text-base-content/70">{n.data.message}</div>
+                                        <div className="mt-1 text-xs text-base-content/50">
+                                            {new Date(n.created_at).toLocaleString()}
+                                        </div>
                                     </li>
                                 ))}
-                                <li className="flex items-center justify-center p-3 text-sm font-semibold cursor-pointer rounded-b-2xl hover:bg-info/80 hover:text-base-100">
+                                <li
+                                    onClick={() => router.visit(route("notifications.index"))}
+                                    className="flex items-center justify-center p-3 text-sm font-semibold cursor-pointer rounded-b-2xl hover:bg-info/80 hover:text-base-100"
+                                >
                                     View All
                                 </li>
+
                             </ul>
+
                         </AnimatedDropdown>
                     </div>
 

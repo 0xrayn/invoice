@@ -66,7 +66,7 @@ class AuthDashboardController extends Controller
             ->get();
 
         return Inertia::render('dashboard', [
-            'auth'           => ['user' => $user],
+            // 'auth'           => ['user' => $user],
             'adminStats'     => $adminStats,
             'salesStats'     => $salesStats,
             'recentInvoices' => $recentInvoices,
