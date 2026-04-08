@@ -54,8 +54,13 @@ Route::middleware(['auth'])->group(function () {
 
         // static routes BEFORE {invoice}
         Route::get('{invoice}/print', [InvoiceController::class, 'print'])->name('print');
-        Route::patch('{invoice}/printed', [InvoiceController::class, 'markPrinted'])->name('markPrinted');
-        Route::patch('{invoice}/sent', [InvoiceController::class, 'markSent'])->name('markSent');
+        // Route::patch('{invoice}/printed', [InvoiceController::class, 'markPrinted'])->name('markPrinted');
+        // Route::patch('{invoice}/sent', [InvoiceController::class, 'markSent'])->name('markSent');
+        Route::patch('{invoice}/printed', [InvoiceController::class, 'markPrinted'])
+        ->name('printed');
+
+        Route::patch('{invoice}/sent', [InvoiceController::class, 'markSent'])
+        ->name('sent');
 
         // route show (parameter) di akhir
         Route::get('{invoice}', [InvoiceController::class, 'show'])->name('show');

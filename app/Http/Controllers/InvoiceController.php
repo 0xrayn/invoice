@@ -17,6 +17,8 @@ use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 class InvoiceController extends Controller
 {
@@ -465,80 +467,145 @@ class InvoiceController extends Controller
         return $invoice;
     }
 
+    private function generatePdfIfNotExists(Invoice $invoice)
+    {
+        if ($invoice->pdf_path && Storage::disk('public')->exists($invoice->pdf_path)) {
+            return $invoice->pdf_path;
+        }
+
+        $invoice->load('items.product', 'customer', 'company');
+
+        $pdf = Pdf::loadView('pdf.invoice', [
+            'invoice' => $invoice
+        ]);
+
+        $fileName = 'invoices/' . $invoice->invoice_no . '.pdf';
+
+        Storage::disk('public')->put($fileName, $pdf->output());
+
+        $invoice->update([
+            'pdf_path' => $fileName
+        ]);
+
+        return $fileName;
+    }
+
+    // public function markPrinted(Invoice $invoice)
+    // {
+    //     /** @var \App\Models\User $user */
+    //     $user = Auth::user();
+
+    //     return DB::transaction(function () use ($invoice, $user) {
+
+    //         if ($user->isFinance()) {
+    //             if ($invoice->status === 'draft') {
+    //                 $this->adjustStockOnStatus($invoice);
+    //             }
+
+    //             $invoice->update(['status' => 'printed']);
+    //         } elseif ($user->isAdmin()) {
+
+    //             if ($invoice->status === 'draft') {
+    //                 return back()->with('error', "Admin tidak bisa mencetak sebelum Finance melakukan cetak!");
+    //             }
+
+    //             $invoice->update(['status' => 'printed']);
+    //         } else {
+    //             abort(403, 'Anda tidak punya akses untuk aksi ini.');
+    //         }
+
+    //         // Notifikasi
+    //         $creator  = $user;
+    //         $admins = User::where('role', 'admin')->get();
+
+    //         $creator->notify(new InvoicePrintedNotification($invoice));
+
+    //         foreach ($admins as $admin) {
+    //             $admin->notify(new InvoicePrintedNotification($invoice));
+    //         }
+
+    //         return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Printed!");
+    //     });
+    // }
+
     public function markPrinted(Invoice $invoice)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
+        return DB::transaction(function () use ($invoice) {
 
-        return DB::transaction(function () use ($invoice, $user) {
+            // ✅ generate PDF kalau belum ada
+            $pdfPath = $this->generatePdfIfNotExists($invoice);
 
-            if ($user->isFinance()) {
-                if ($invoice->status === 'draft') {
-                    $this->adjustStockOnStatus($invoice);
-                }
-
-                $invoice->update(['status' => 'printed']);
-            } elseif ($user->isAdmin()) {
-
-                if ($invoice->status === 'draft') {
-                    return back()->with('error', "Admin tidak bisa mencetak sebelum Finance melakukan cetak!");
-                }
-
-                $invoice->update(['status' => 'printed']);
-            } else {
-                abort(403, 'Anda tidak punya akses untuk aksi ini.');
+            if ($invoice->status === 'draft') {
+                $this->adjustStockOnStatus($invoice);
             }
 
-            // Notifikasi
-            $creator  = $user;
-            $admins = User::where('role', 'admin')->get();
+            $invoice->update(['status' => 'printed']);
 
-            $creator->notify(new InvoicePrintedNotification($invoice));
-
-            foreach ($admins as $admin) {
-                $admin->notify(new InvoicePrintedNotification($invoice));
-            }
-
-            return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Printed!");
+            return response()->json([
+                'success' => true,
+                'pdf_url' => asset('storage/' . $pdfPath)
+            ]);
         });
     }
 
 
 
+    // public function markSent(Invoice $invoice)
+    // {
+    //     /** @var \App\Models\User $user */
+    //     $user = Auth::user();
+
+    //     return DB::transaction(function () use ($invoice, $user) {
+
+    //         if ($user->isFinance()) {
+    //             if ($invoice->status === 'draft') {
+    //                 $this->adjustStockOnStatus($invoice);
+    //             }
+    //             $invoice->update(['status' => 'sent']);
+    //         } elseif ($user->isAdmin()) {
+
+    //             if (! in_array($invoice->status, ['printed', 'sent'])) {
+    //                 return back()->with('error', "Admin tidak bisa mengirim sebelum Finance melakukan kirim/cetak!");
+    //             }
+
+    //             $invoice->update(['status' => 'sent']);
+    //         } else {
+    //             abort(403, 'Anda tidak punya akses untuk aksi ini.');
+    //         }
+
+    //         // Notifikasi
+    //         $creator  = $user;
+    //         $admins = User::where('role', 'admin')->get();
+
+    //         $creator->notify(new InvoiceSentNotification($invoice));
+
+    //         foreach ($admins as $admin) {
+    //             $admin->notify(new InvoiceSentNotification($invoice));
+    //         }
+
+    //         return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Sent!");
+    //     });
+    // }
     public function markSent(Invoice $invoice)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
+        return DB::transaction(function () use ($invoice) {
 
-        return DB::transaction(function () use ($invoice, $user) {
+            // ✅ pastikan PDF sudah ada
+            $pdfPath = $this->generatePdfIfNotExists($invoice);
 
-            if ($user->isFinance()) {
-                if ($invoice->status === 'draft') {
-                    $this->adjustStockOnStatus($invoice);
-                }
-                $invoice->update(['status' => 'sent']);
-            } elseif ($user->isAdmin()) {
+            $invoice->update(['status' => 'sent']);
 
-                if (! in_array($invoice->status, ['printed', 'sent'])) {
-                    return back()->with('error', "Admin tidak bisa mengirim sebelum Finance melakukan kirim/cetak!");
-                }
+            // contoh WA link (basic)
+            $phone = $invoice->customer->phone;
 
-                $invoice->update(['status' => 'sent']);
-            } else {
-                abort(403, 'Anda tidak punya akses untuk aksi ini.');
-            }
+            $message = urlencode("Invoice {$invoice->invoice_no}:\n" . asset('storage/' . $pdfPath));
 
-            // Notifikasi
-            $creator  = $user;
-            $admins = User::where('role', 'admin')->get();
+            $waLink = "https://wa.me/{$phone}?text={$message}";
 
-            $creator->notify(new InvoiceSentNotification($invoice));
-
-            foreach ($admins as $admin) {
-                $admin->notify(new InvoiceSentNotification($invoice));
-            }
-
-            return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Sent!");
+            return response()->json([
+                'success' => true,
+                'wa_link' => $waLink
+            ]);
         });
     }
 }
