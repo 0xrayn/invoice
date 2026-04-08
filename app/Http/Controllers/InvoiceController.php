@@ -586,25 +586,32 @@ class InvoiceController extends Controller
     //         return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Sent!");
     //     });
     // }
+    use Illuminate\Support\Facades\Http;
+
     public function markSent(Invoice $invoice)
     {
         return DB::transaction(function () use ($invoice) {
 
-            // ✅ pastikan PDF sudah ada
+            // ✅ generate PDF kalau belum ada
             $pdfPath = $this->generatePdfIfNotExists($invoice);
 
-            $invoice->update(['status' => 'sent']);
+            // ✅ update status
+            $invoice->update([
+                'status' => 'sent'
+            ]);
 
-            // contoh WA link (basic)
-            $phone = $invoice->customer->phone;
-
-            $message = urlencode("Invoice {$invoice->invoice_no}:\n" . asset('storage/' . $pdfPath));
-
-            $waLink = "https://wa.me/{$phone}?text={$message}";
+            // ✅ kirim ke n8n
+            Http::post('https://n8n.kamu.com/webhook/send-invoice', [
+                'invoice_no' => $invoice->invoice_no,
+                'customer_name' => $invoice->customer->name,
+                'phone' => $invoice->customer->phone,
+                'grand_total' => $invoice->grand_total,
+                'pdf_url' => asset('storage/' . $pdfPath),
+            ]);
 
             return response()->json([
                 'success' => true,
-                'wa_link' => $waLink
+                'message' => 'Invoice dikirim ke n8n'
             ]);
         });
     }
