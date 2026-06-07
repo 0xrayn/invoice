@@ -102,7 +102,7 @@ const LandingPage = () => {
                                     animate={{ opacity: 1 }}
                                     transition={{ duration: 1, delay: 0.2 }}
                                 >
-                                    CV Mata Timur Nusantara menghadirkan sistem invoice digital yang modern, aman, dan mudah digunakan untuk mendukung pertumbuhan bisnis
+                                    Menghadirkan sistem invoice digital yang modern, aman, dan mudah digunakan untuk mendukung pertumbuhan bisnis
                                 </m.p>
 
                                 <div className="flex gap-4 justify-center md:justify-start flex-wrap">

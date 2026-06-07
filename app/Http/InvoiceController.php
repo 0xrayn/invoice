@@ -587,6 +587,8 @@ class InvoiceController extends Controller
     //         return back()->with('success', "Invoice {$invoice->invoice_no} ditandai sebagai Sent!");
     //     });
     // }
+    use Illuminate\Support\Facades\Http;
+
     public function markSent(Invoice $invoice)
     {
         return DB::transaction(function () use ($invoice) {
