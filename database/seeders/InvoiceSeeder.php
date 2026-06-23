@@ -210,14 +210,37 @@ class InvoiceSeeder extends Seeder
         try {
             $invoice->load('items.product', 'customer', 'company');
 
-            $pdf = Pdf::loadView('pdf.invoice', ['invoice' => $invoice])
+            // ✅ Fix: embed logo sebagai base64 agar DomPDF tidak perlu baca file dari disk
+            $logoBase64 = null;
+            if ($invoice->company?->logo_path) {
+                $logoFile = Storage::disk('public')->path($invoice->company->logo_path);
+                if (file_exists($logoFile)) {
+                    $mime = mime_content_type($logoFile);
+                    $logoBase64 = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($logoFile));
+                }
+            }
+
+            // ✅ Fix: embed signature sebagai base64 juga
+            $signatureBase64 = null;
+            if ($invoice->signature_path) {
+                $signatureFile = Storage::disk('public')->path($invoice->signature_path);
+                if (file_exists($signatureFile)) {
+                    $mime = mime_content_type($signatureFile);
+                    $signatureBase64 = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($signatureFile));
+                }
+            }
+
+            $pdf = Pdf::loadView('pdf.invoice', [
+                'invoice'         => $invoice,
+                'logoBase64'      => $logoBase64,
+                'signatureBase64' => $signatureBase64,
+            ])
                 ->setPaper('a4', 'portrait')
                 ->setOption([
                     'defaultFont'          => 'DejaVu Sans',
                     'dpi'                  => 150,
                     'isHtml5ParserEnabled' => true,
-                    'isRemoteEnabled'      => true,
-                    'chroot'               => public_path(),
+                    'isRemoteEnabled'      => false,
                 ]);
 
             $fileName = 'invoices/' . $invoice->invoice_no . '.pdf';

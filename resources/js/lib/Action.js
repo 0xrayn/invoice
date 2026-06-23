@@ -45,6 +45,9 @@ export async function markInvoicePrinted(id) {
         if (res.data?.pdf_url) {
             window.open(res.data.pdf_url, "_blank");
         }
+
+        // ✅ Fix: reload halaman via Inertia agar status berubah ke 'printed' tanpa refresh manual
+        router.reload({ only: ["invoice"] });
     } catch (err) {
         console.error(err);
         alert("Gagal generate PDF");
@@ -58,6 +61,9 @@ export async function markInvoiceSent(id) {
         if (res.data?.wa_link) {
             window.open(res.data.wa_link, "_blank");
         }
+
+        // ✅ Fix: reload halaman via Inertia agar status berubah ke 'sent' tanpa refresh manual
+        router.reload({ only: ["invoice"] });
     } catch (err) {
         console.error(err);
         alert("Gagal kirim WA");

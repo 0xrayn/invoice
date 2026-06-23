@@ -29,6 +29,7 @@ class Invoice extends Model
         'custom_labels',
         'signature_path',
         'status',
+        'pdf_path', // ✅ Fix: pdf_path tersimpan ke DB
     ];
 
     protected $casts = [

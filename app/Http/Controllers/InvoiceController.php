@@ -470,27 +470,53 @@ class InvoiceController extends Controller
 
     private function generatePdfIfNotExists(Invoice $invoice)
     {
+        $fileName = 'invoices/' . $invoice->invoice_no . '.pdf';
+
+        // ✅ Kalau PDF sudah ada di storage, langsung return — tidak perlu generate ulang
+        if ($invoice->pdf_path && Storage::disk('public')->exists($fileName)) {
+            return $fileName;
+        }
+
+        // Generate PDF baru (status sudah di-update sebelum fungsi ini dipanggil)
         $invoice->load('items.product', 'customer', 'company');
 
+        // ✅ Fix logo: embed sebagai base64 agar DomPDF tidak perlu baca file dari disk
+        $logoBase64 = null;
+        if ($invoice->company?->logo_path) {
+            $logoFile = Storage::disk('public')->path($invoice->company->logo_path);
+            if (file_exists($logoFile)) {
+                $mime = mime_content_type($logoFile);
+                $logoBase64 = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($logoFile));
+            }
+        }
+
+        // ✅ Fix signature: embed sebagai base64 juga
+        $signatureBase64 = null;
+        if ($invoice->signature_path) {
+            $signatureFile = Storage::disk('public')->path($invoice->signature_path);
+            if (file_exists($signatureFile)) {
+                $mime = mime_content_type($signatureFile);
+                $signatureBase64 = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($signatureFile));
+            }
+        }
+
         $pdf = Pdf::loadView('pdf.invoice', [
-            'invoice' => $invoice
+            'invoice'        => $invoice,
+            'logoBase64'     => $logoBase64,
+            'signatureBase64' => $signatureBase64,
         ])
         ->setPaper('a4', 'portrait')
         ->setOption([
-            'defaultFont'       => 'DejaVu Sans',
-            'dpi'               => 150,
+            'defaultFont'          => 'DejaVu Sans',
+            'dpi'                  => 150,
             'isHtml5ParserEnabled' => true,
-            'isRemoteEnabled'   => true,
-            'chroot'            => public_path(),
+            'isRemoteEnabled'      => false, // tidak perlu remote karena sudah base64
         ]);
-
-        $fileName = 'invoices/' . $invoice->invoice_no . '.pdf';
 
         Storage::disk('public')->put($fileName, $pdf->output());
 
-        $invoice->update([
-            'pdf_path' => $fileName
-        ]);
+        // ✅ pdf_path tersimpan ke DB karena sudah ada di $fillable
+        $invoice->update(['pdf_path' => $fileName]);
 
         return $fileName;
     }
@@ -537,14 +563,19 @@ class InvoiceController extends Controller
     {
         return DB::transaction(function () use ($invoice) {
 
-            // ✅ generate PDF kalau belum ada
-            $pdfPath = $this->generatePdfIfNotExists($invoice);
-
+            // ✅ Fix: Kurangi stok dulu sebelum status berubah
             if ($invoice->status === 'draft') {
                 $this->adjustStockOnStatus($invoice);
             }
 
+            // ✅ Fix: Update status DULU ke 'printed'
             $invoice->update(['status' => 'printed']);
+
+            // ✅ Fix: Refresh model agar $invoice->status = 'printed' saat Blade dirender
+            $invoice->refresh();
+
+            // ✅ Generate PDF — badge di PDF sekarang tampil PRINTED, bukan DRAFT
+            $pdfPath = $this->generatePdfIfNotExists($invoice);
 
             return response()->json([
                 'success' => true,
@@ -595,21 +626,27 @@ class InvoiceController extends Controller
     {
         return DB::transaction(function () use ($invoice) {
 
-            // ✅ generate PDF kalau belum ada
+            // ✅ Fix: Kurangi stok kalau dari draft langsung sent (tanpa lewat printed)
+            if ($invoice->status === 'draft') {
+                $this->adjustStockOnStatus($invoice);
+            }
+
+            // ✅ Fix: Update status DULU ke 'sent'
+            $invoice->update(['status' => 'sent']);
+
+            // ✅ Fix: Refresh model agar $invoice->status = 'sent' saat Blade dirender
+            $invoice->refresh();
+
+            // ✅ Generate PDF — badge di PDF sekarang tampil SENT, bukan DRAFT
             $pdfPath = $this->generatePdfIfNotExists($invoice);
 
-            // ✅ update status
-            $invoice->update([
-                'status' => 'sent'
-            ]);
-
-            // ✅ kirim ke n8n
+            // Kirim ke n8n
             Http::post('https://n8n.kamu.com/webhook/send-invoice', [
-                'invoice_no' => $invoice->invoice_no,
+                'invoice_no'    => $invoice->invoice_no,
                 'customer_name' => $invoice->customer->name,
-                'phone' => $invoice->customer->phone,
-                'grand_total' => $invoice->grand_total,
-                'pdf_url' => asset('storage/' . $pdfPath),
+                'phone'         => $invoice->customer->phone,
+                'grand_total'   => $invoice->grand_total,
+                'pdf_url'       => asset('storage/' . $pdfPath),
             ]);
 
             return response()->json([

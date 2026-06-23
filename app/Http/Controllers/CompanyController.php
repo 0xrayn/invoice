@@ -69,12 +69,14 @@ class CompanyController extends Controller
         $validated = $request->validate($this->validationRules(true));
 
         if ($request->hasFile('logo_path')) {
+            // ✅ Ada file baru — hapus logo lama, simpan yang baru
             if ($company->logo_path && Storage::disk('public')->exists($company->logo_path)) {
                 Storage::disk('public')->delete($company->logo_path);
             }
             $validated['logo_path'] = $request->file('logo_path')->store('logos', 'public');
         } else {
-            unset($validated['logo_path']);
+            // ✅ Fix: Tidak ada file baru — pertahankan logo lama, jangan overwrite
+            $validated['logo_path'] = $company->logo_path;
         }
 
         $company->update($validated);
@@ -120,7 +122,7 @@ class CompanyController extends Controller
             'province'    => 'nullable|regex:/^[a-zA-Z\s]+$/|max:255',
             'postal_code' => 'nullable|regex:/^[0-9]+$/|max:10',
             'country'     => 'nullable|string|max:100',
-            'phone'       => ['nullable', 'regex:/^(0|62)[0-9]{8,13}$/'],
+            'phone'       => ['nullable', 'regex:/^[\d\s\-\+\(\)]{6,20}$/'],
             'email'       => 'nullable|email|max:255',
             'logo_path'   => 'nullable|file|mimes:jpg,jpeg,png,gif|max:2048',
         ];

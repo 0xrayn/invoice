@@ -99,8 +99,8 @@
 
         /* ===== LOGO ===== */
         .company-logo {
-            max-height: 55px;
-            max-width: 180px;
+            max-height: 80px;
+            max-width: 220px;
             margin-bottom: 8px;
         }
 
@@ -328,8 +328,8 @@
     <!-- ===== HEADER ===== -->
     <div class="header-wrap clearfix">
         <div class="header-left">
-            @if($invoice->company->logo_path)
-                <img class="company-logo" src="{{ public_path('storage/' . $invoice->company->logo_path) }}">
+            @if($logoBase64)
+                <img class="company-logo" src="{{ $logoBase64 }}">
                 <br>
             @endif
             <div class="company-name">{{ $invoice->company->name }}</div>
@@ -496,10 +496,10 @@
             @endif
         </div>
 
-        @if($invoice->signature_path)
+        @if($signatureBase64)
         <div class="signature-wrap">
             <div class="signature-label">Hormat Kami,</div>
-            <img src="{{ public_path('storage/' . $invoice->signature_path) }}">
+            <img src="{{ $signatureBase64 }}">
             <div class="signature-line"></div>
             <div class="signature-name">{{ $invoice->company->name }}</div>
         </div>
