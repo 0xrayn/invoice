@@ -470,14 +470,18 @@ class InvoiceController extends Controller
 
     private function generatePdfIfNotExists(Invoice $invoice)
     {
-        if ($invoice->pdf_path && Storage::disk('public')->exists($invoice->pdf_path)) {
-            return $invoice->pdf_path;
-        }
-
         $invoice->load('items.product', 'customer', 'company');
 
         $pdf = Pdf::loadView('pdf.invoice', [
             'invoice' => $invoice
+        ])
+        ->setPaper('a4', 'portrait')
+        ->setOption([
+            'defaultFont'       => 'DejaVu Sans',
+            'dpi'               => 150,
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled'   => true,
+            'chroot'            => public_path(),
         ]);
 
         $fileName = 'invoices/' . $invoice->invoice_no . '.pdf';
