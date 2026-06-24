@@ -640,18 +640,29 @@ class InvoiceController extends Controller
             // ✅ Generate PDF — badge di PDF sekarang tampil SENT, bukan DRAFT
             $pdfPath = $this->generatePdfIfNotExists($invoice);
 
-            // Kirim ke n8n
-            Http::post('https://n8n.kamu.com/webhook/send-invoice', [
-                'invoice_no'    => $invoice->invoice_no,
-                'customer_name' => $invoice->customer->name,
-                'phone'         => $invoice->customer->phone,
-                'grand_total'   => $invoice->grand_total,
-                'pdf_url'       => asset('storage/' . $pdfPath),
-            ]);
+            // Kirim trigger ke n8n (n8n yang akan teruskan PDF ke WA/Email)
+            // ⚠️ pakai try/catch supaya kalau n8n belum jalan (localhost mati dsb),
+            // status invoice tetap berhasil ter-update jadi "sent".
+            $webhookSent = false;
+            try {
+                Http::timeout(5)->post(config('services.n8n.invoice_webhook_url'), [
+                    'invoice_no'    => $invoice->invoice_no,
+                    'customer_name' => $invoice->customer->name,
+                    'phone'         => $invoice->customer->phone,
+                    'email'         => $invoice->customer->email,
+                    'grand_total'   => $invoice->grand_total,
+                    'pdf_url'       => rtrim(config('services.n8n.laravel_base_url'), '/') . '/storage/' . $pdfPath,
+                ]);
+                $webhookSent = true;
+            } catch (\Throwable $e) {
+                report($e); // tetap tercatat di storage/logs/laravel.log
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Invoice dikirim ke n8n'
+                'message' => $webhookSent
+                    ? 'Invoice ditandai sent & dikirim ke n8n'
+                    : 'Invoice ditandai sent, tapi gagal menghubungi n8n (cek apakah n8n sudah jalan)',
             ]);
         });
     }

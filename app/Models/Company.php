@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\NormalizesPhoneNumber;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Storage;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 class Company extends Model
 {
     use HasFactory;
+    use NormalizesPhoneNumber;
 
     protected $fillable = [
         'name',

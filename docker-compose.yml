@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  waha:
+    image: devlikeapro/waha
+    container_name: waha
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - waha_sessions:/app/.sessions
+    networks:
+      - invoice-net
+
+  n8n:
+    image: n8nio/n8n
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_SECURE_COOKIE=false
+      - GENERIC_TIMEZONE=Asia/Jakarta
+      - TZ=Asia/Jakarta
+    volumes:
+      - n8n_data:/home/node/.n8n
+    extra_hosts:
+      # Wajib, biar n8n di dalam Docker bisa akses Laravel yang jalan di host (localhost:8000)
+      - "host.docker.internal:host-gateway"
+    networks:
+      - invoice-net
+    depends_on:
+      - waha
+
+volumes:
+  waha_sessions:
+  n8n_data:
+
+networks:
+  invoice-net:
+    driver: bridge

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Concerns\NormalizesPhoneNumber;
 use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
+    use NormalizesPhoneNumber;
+
     protected $fillable = [
         'name',
         'address',

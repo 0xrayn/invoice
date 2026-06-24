@@ -119,7 +119,7 @@ class CustomerController extends Controller
             'province'    => 'nullable|regex:/^[a-zA-Z\s]+$/|max:255',
             'postal_code' => 'nullable|regex:/^[0-9]+$/|max:10',
             'country'     => 'nullable|string|max:100',
-            'phone'       => ['nullable', 'regex:/^(0|62)[0-9]{8,13}$/'],
+            'phone'       => ['nullable', 'regex:/^(\+?62|0)[0-9]{8,13}$/'],
             'email'       => 'nullable|email|max:255',
         ];
 

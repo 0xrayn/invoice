@@ -181,20 +181,34 @@ export default function EntityForm({
                     <input
                         type="text"
                         className="w-full input input-bordered"
-                        placeholder="081234567890"
+                        placeholder="+62 812xxxxxxx"
                         value={data.phone}
                         onChange={(e) => {
-                            let val = e.target.value.replace(/\D/g, "");
+                            // Ambil digit aja dulu (boleh ketik 0812.. , 62812.. , atau +62812.. bebas)
+                            let digits = e.target.value.replace(/\D/g, "");
+
+                            // Normalisasi: 0 di depan -> 62, kalau belum ada 62 -> tambahin
+                            if (digits.startsWith("0")) {
+                                digits = "62" + digits.slice(1);
+                            } else if (digits && !digits.startsWith("62")) {
+                                digits = "62" + digits;
+                            }
+
                             let warning = null;
-                            if (val && !/^(0|62)/.test(val)) warning = "Nomor HP harus diawali 0 atau 62.";
-                            else if (val.length > 15) {
+                            if (digits.length > 15) {
                                 warning = "Nomor HP maksimal 15 digit.";
-                                val = val.slice(0, 15);
-                            } else if (val && val.length < 9) warning = "Nomor HP minimal 9 digit.";
+                                digits = digits.slice(0, 15);
+                            } else if (digits && digits.length < 10) {
+                                warning = "Nomor HP terlalu pendek.";
+                            }
+
                             setLiveErrors((prev) => ({ ...prev, phone: warning }));
-                            setData("phone", val);
+                            setData("phone", digits ? "+" + digits : "");
                         }}
                     />
+                    <span className="mt-1 text-xs text-gray-400">
+                        Otomatis diformat jadi +62 — ketik {`"0812..."`} atau {`"812..."`} juga bisa.
+                    </span>
                     {(errors.phone || liveErrors.phone) && (
                         <span className="text-sm text-error">{errors.phone || liveErrors.phone}</span>
                     )}

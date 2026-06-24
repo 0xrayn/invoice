@@ -1,0 +1,218 @@
+{
+  "name": "Kirim Invoice - WA & Email",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "send-invoice",
+        "responseMode": "onReceived",
+        "responseData": "Webhook diterima, invoice sedang diproses",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook - Invoice Sent",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 380],
+      "webhookId": "send-invoice"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.pdf_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "download-pdf",
+      "name": "Download PDF Invoice",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 380]
+    },
+    {
+      "parameters": {
+        "jsCode": "const trigger = $('Webhook - Invoice Sent').item.json.body;\nconst item = $input.item;\n\n// Normalisasi nomor WA: 0812xxx -> 62812xxx, +62812xxx -> 62812xxx\nlet phone = (trigger.phone || '').toString().replace(/\\D/g, '');\nif (phone.startsWith('0')) {\n  phone = '62' + phone.slice(1);\n}\n\nconst grandTotal = Number(trigger.grand_total || 0).toLocaleString('id-ID');\n\nreturn [{\n  json: {\n    invoice_no: trigger.invoice_no,\n    customer_name: trigger.customer_name,\n    grand_total_formatted: grandTotal,\n    email: trigger.email || null,\n    chat_id: phone ? phone + '@c.us' : null,\n  },\n  binary: item.binary,\n}];"
+      },
+      "id": "format-data",
+      "name": "Format Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 380]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.chat_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-phone",
+      "name": "Ada No. WA?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [900, 260]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://waha:3000/api/sendFile",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Api-Key",
+              "value": "GANTI_DENGAN_WAHA_API_KEY_KALAU_DIPAKAI"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ session: \"default\", chatId: $json.chat_id, file: { mimetype: \"application/pdf\", filename: $json.invoice_no + \".pdf\", data: $binary.data.data }, caption: \"Halo \" + $json.customer_name + \",\\n\\nBerikut invoice \" + $json.invoice_no + \" dengan total Rp \" + $json.grand_total_formatted + \".\\n\\nTerima kasih.\" }) }}",
+        "options": {}
+      },
+      "id": "send-waha",
+      "name": "Kirim WA via WAHA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-email",
+      "name": "Ada Email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [900, 520]
+    },
+    {
+      "parameters": {
+        "fromEmail": "GANTI_DENGAN_EMAIL_GMAIL_KAMU@gmail.com",
+        "toEmail": "={{ $json.email }}",
+        "subject": "=Invoice {{ $json.invoice_no }}",
+        "emailFormat": "text",
+        "text": "=Halo {{ $json.customer_name }},\n\nBerikut kami lampirkan invoice {{ $json.invoice_no }} dengan total Rp {{ $json.grand_total_formatted }}.\n\nTerima kasih.",
+        "attachments": "data",
+        "options": {}
+      },
+      "id": "send-email",
+      "name": "Kirim Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1120, 520],
+      "credentials": {
+        "smtp": {
+          "id": "REPLACE_WITH_YOUR_SMTP_CREDENTIAL_ID",
+          "name": "Gmail SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook - Invoice Sent": {
+      "main": [
+        [
+          {
+            "node": "Download PDF Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download PDF Invoice": {
+      "main": [
+        [
+          {
+            "node": "Format Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Data": {
+      "main": [
+        [
+          {
+            "node": "Ada No. WA?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ada Email?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ada No. WA?": {
+      "main": [
+        [
+          {
+            "node": "Kirim WA via WAHA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Ada Email?": {
+      "main": [
+        [
+          {
+            "node": "Kirim Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
