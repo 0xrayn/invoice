@@ -1,42 +1,62 @@
 # Invoice Management System
 
-A Laravel + React (Inertia.js) web application for managing invoices, products, customers, and companies. It generates PDF invoices via DomPDF and optionally forwards them to customers via WhatsApp or Email through n8n + WAHA.
+A Laravel + React (Inertia.js) web application for managing invoices, products, customers, and companies. Generates PDF invoices via DomPDF and optionally forwards them to customers via WhatsApp or Email through n8n + WAHA.
 
 ---
 
 ## Screenshots
 
-| Page | Screenshot |
-|------|-----------|
-| Landing Page (above the fold) | `docs/screenshots/landing-top.png` |
-| Landing Page (below the fold) | `docs/screenshots/landing-bottom.png` |
-| Dashboard | `docs/screenshots/dashboard.png` |
-| Invoice List | `docs/screenshots/invoice-list.png` |
-| Product List | `docs/screenshots/product-list.png` |
-| Sender Company | `docs/screenshots/company.png` |
-| Postman Testing | `docs/screenshots/postman-test.png` |
-| n8n Workflow | `docs/screenshots/n8n-workflow.png` |
-| Generated PDF | `docs/screenshots/invoice-pdf.png` |
+### Landing Page (top)
+![Landing Page Top](docs/screenshots/landing-top.png)
+Hero section and main navigation.
+
+### Landing Page (bottom)
+![Landing Page Bottom](docs/screenshots/landing-bottom.png)
+Feature highlights, call to action, and footer.
+
+### Dashboard
+![Dashboard](docs/screenshots/dashboard.png)
+Summary stats for invoices, products, and customers.
+
+### Invoice List
+![Invoice List](docs/screenshots/invoice-list.png)
+Invoice table with status filters (draft, printed, sent, paid, cancelled) and per-row actions.
+
+### Product List
+![Product List](docs/screenshots/product-list.png)
+Product management page where Admin can add, edit, and delete products with pricing and stock.
+
+### Sender Company
+![Sender Company](docs/screenshots/company.png)
+Company profile settings including logo and Finance signature that appear on generated PDFs.
+
+### n8n Workflow
+![n8n Workflow](docs/screenshots/n8n-workflow.png)
+The n8n automation that receives the webhook, checks for a WhatsApp number and email, then delivers the PDF.
+
+### Generated PDF Invoice
+![Generated PDF Invoice](docs/screenshots/invoice-pdf.png)
+Sample PDF output from DomPDF with company logo, signature, and line items.
 
 ---
 
 ## Roles
 
-The system has two roles. Each role has different permissions throughout the application.
+The system has two roles with different permissions.
 
 **Admin**
 
 - Manages companies (sender profiles) and products.
 - Views all invoices created by any Finance user.
 - Cannot create, edit, or delete invoices.
-- Cannot mark an invoice as printed or sent directly from draft; that action belongs to Finance first.
+- Cannot mark an invoice as printed or sent; that belongs to Finance.
 
 **Finance**
 
 - Creates and manages customers.
 - Creates, edits, and deletes invoices (only while status is `draft`).
 - Marks invoices as `printed`, which generates the PDF.
-- Marks invoices as `sent`, which generates the PDF and triggers the n8n webhook to forward it via WhatsApp or Email.
+- Marks invoices as `sent`, which generates the PDF and triggers the n8n webhook.
 
 ---
 
@@ -57,13 +77,13 @@ draft -> printed -> sent -> paid
 
 ## PDF Generation
 
-PDF is generated server-side using **barryvdh/laravel-dompdf** and stored at `storage/app/public/invoices/<invoice_no>.pdf`. It embeds the company logo and Finance signature as base64 so DomPDF does not need remote file access.
+PDFs are generated server-side using **barryvdh/laravel-dompdf** and stored at `storage/app/public/invoices/<invoice_no>.pdf`. The company logo and Finance signature are embedded as base64 so DomPDF does not need remote file access.
 
-The PDF is created automatically when:
+A PDF is created automatically when:
 - Finance clicks **Mark as Printed** (`PATCH /invoices/{id}/printed`)
 - Finance clicks **Mark as Sent** (`PATCH /invoices/{id}/sent`)
 
-If the PDF already exists on disk for that invoice number, it is reused rather than regenerated.
+If a PDF already exists for that invoice number it is reused rather than regenerated.
 
 ---
 
@@ -93,7 +113,7 @@ If the PDF already exists on disk for that invoice number, it is reused rather t
 
 ## Installation
 
-### 1. Clone and Install Dependencies
+### 1. Clone and install dependencies
 
 ```bash
 git clone <your-repo-url>
@@ -103,14 +123,14 @@ composer install
 npm install
 ```
 
-### 2. Environment Setup
+### 2. Environment setup
 
 ```bash
 cp env.example .env
 php artisan key:generate
 ```
 
-Open `.env` and configure the following:
+Open `.env` and fill in the following:
 
 ```dotenv
 APP_URL=http://localhost:8000
@@ -126,8 +146,8 @@ DB_PASSWORD=
 N8N_INVOICE_WEBHOOK_URL=http://localhost:5678/webhook/send-invoice
 
 # How n8n sees your Laravel app
-# If n8n runs via Docker: use http://host.docker.internal:8000
-# If n8n runs natively on host: use http://localhost:8000
+# Docker: http://host.docker.internal:8000
+# Native host: http://localhost:8000
 N8N_LARAVEL_BASE_URL=http://host.docker.internal:8000
 ```
 
@@ -144,7 +164,7 @@ php artisan db:seed    # optional: creates demo data
 php artisan storage:link
 ```
 
-### 5. Build Frontend
+### 5. Build frontend
 
 ```bash
 npm run build
@@ -152,19 +172,19 @@ npm run build
 npm run dev
 ```
 
-### 6. Run the App
+### 6. Run the app
 
 ```bash
 php artisan serve
 ```
 
-The app is now available at `http://localhost:8000`.
+Visit `http://localhost:8000`.
 
 ---
 
 ## Docker (n8n + WAHA)
 
-The `docker-compose.yml` spins up n8n and WAHA. Laravel itself runs natively on the host.
+`docker-compose.yml` spins up n8n and WAHA. Laravel itself runs natively on the host.
 
 ```bash
 docker compose up -d
@@ -175,7 +195,7 @@ docker compose up -d
 | n8n | 5678 | Automation / webhook receiver |
 | WAHA | 3000 | WhatsApp HTTP API |
 
-### Import the n8n Workflow
+### Import the n8n workflow
 
 1. Open n8n at `http://localhost:5678`.
 2. Go to **Workflows** and click **Import from File**.
@@ -184,10 +204,10 @@ docker compose up -d
 
 The workflow listens on `POST /webhook/send-invoice` and:
 - Downloads the PDF from the URL provided by Laravel.
-- Checks if the customer has a WhatsApp number; if yes, sends via WAHA.
-- Checks if the customer has an email; if yes, sends via email.
+- Sends via WAHA if the customer has a WhatsApp number.
+- Sends via email if the customer has an email address.
 
-### WAHA Setup
+### WAHA setup
 
 1. Open WAHA at `http://localhost:3000`.
 2. Start a session and scan the QR code with your WhatsApp.
@@ -196,11 +216,7 @@ The workflow listens on `POST /webhook/send-invoice` and:
 
 ## Testing with Postman
 
-### Authentication
-
-All API endpoints require a Laravel session cookie (standard web auth). Use the login endpoint first.
-
-**Login**
+All API endpoints require a Laravel session cookie. Log in first:
 
 ```
 POST http://localhost:8000/login
@@ -214,15 +230,13 @@ Content-Type: application/json
 
 Copy the session cookie from the response and attach it to all subsequent requests.
 
-### Mark Invoice as Printed (generates PDF)
+### Mark as Printed (generates PDF)
 
 ```
 PATCH http://localhost:8000/invoices/{id}/printed
 Cookie: <your-session-cookie>
 X-XSRF-TOKEN: <csrf-token>
 ```
-
-Response:
 
 ```json
 {
@@ -231,17 +245,13 @@ Response:
 }
 ```
 
-Open the `pdf_url` in a browser to verify the generated PDF.
-
-### Mark Invoice as Sent (generates PDF + triggers n8n)
+### Mark as Sent (generates PDF + triggers n8n)
 
 ```
 PATCH http://localhost:8000/invoices/{id}/sent
 Cookie: <your-session-cookie>
 X-XSRF-TOKEN: <csrf-token>
 ```
-
-Response:
 
 ```json
 {
@@ -250,13 +260,12 @@ Response:
 }
 ```
 
-If n8n is not running, the invoice status still updates to `sent` and an error is logged to `storage/logs/laravel.log`. The failure is non-blocking by design.
+If n8n is not running, the invoice status still updates to `sent` and the error is logged to `storage/logs/laravel.log`. The failure is non-blocking by design.
 
-### Postman Tips
-
-- Fetch the CSRF token first by calling `GET /sanctum/csrf-cookie`, then include `X-XSRF-TOKEN` in subsequent requests.
+**Tips:**
+- Call `GET /sanctum/csrf-cookie` first to get the CSRF token, then pass it as `X-XSRF-TOKEN`.
 - Set `Accept: application/json` so Laravel returns JSON instead of redirecting.
-- You can use Postman's **Cookie Jar** to carry the session automatically across requests.
+- Use Postman's Cookie Jar to carry the session automatically across requests.
 
 ---
 
@@ -282,8 +291,6 @@ If n8n is not running, the invoice status still updates to `sent` and an error i
 
 ## Deployment
 
-### Production Environment
-
 Update `.env`:
 
 ```dotenv
@@ -292,7 +299,7 @@ APP_DEBUG=false
 APP_URL=https://yourdomain.com
 ```
 
-### Optimize
+Optimize:
 
 ```bash
 composer install --optimize-autoloader --no-dev
@@ -302,9 +309,7 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-### Web Server
-
-Point the document root to the `public/` directory. Example Nginx config:
+Point your web server document root to `public/`. Example Nginx config:
 
 ```nginx
 server {
@@ -326,13 +331,11 @@ server {
 }
 ```
 
-### Queue Worker (required for notifications)
+Run a queue worker for notifications (use Supervisor to keep it alive):
 
 ```bash
 php artisan queue:work --daemon
 ```
-
-Use a process manager like Supervisor to keep it running.
 
 ---
 
@@ -351,7 +354,7 @@ app/
     Company.php
     Product.php
     Customer.php
-  Notifications/             # Laravel notifications for in-app + email alerts
+  Notifications/             # Laravel notifications for in-app and email alerts
 resources/
   js/pages/
     Invoices/                # Invoice list, create, edit, show, print
